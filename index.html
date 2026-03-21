@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="STR Analyzer" />
+  <meta name="theme-color" content="#0a0f1e" />
+  <title>STR Analyzer</title>
+  <link rel="manifest" href="manifest.json" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    :root {
+      --bg: #060b18;
+      --bg2: #0d1628;
+      --bg3: #131f38;
+      --card: #111827;
+      --card2: #1a2540;
+      --border: #1e2d4a;
+      --border2: #253556;
+      --accent: #3b82f6;
+      --accent2: #60a5fa;
+      --gold: #f59e0b;
+      --gold2: #fcd34d;
+      --green: #10b981;
+      --green2: #34d399;
+      --red: #ef4444;
+      --red2: #f87171;
+      --purple: #8b5cf6;
+      --text: #f0f6ff;
+      --text2: #94a3b8;
+      --text3: #475569;
+      --radius: 14px;
+      --radius2: 10px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; overflow-x: hidden; }
+    #root { min-height: 100vh; min-height: -webkit-fill-available; }
+
+```
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; } 
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* App Shell */
+.app { display: flex; flex-direction: column; min-height: 100vh; min-height: -webkit-fill-available; }
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(6,11,24,0.92); backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: calc(var(--safe-top) + 12px) 20px 12px;
+}
+.header-inner { display: flex; align-items: center; justify-content: space-between; max-width: 480px; margin: 0 auto; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent), var(--purple)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.logo-text { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); letter-spacing: -0.3px; }
+.logo-sub { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 1px; text-transform: uppercase; }
+.header-actions { display: flex; gap: 8px; }
+.icon-btn { width: 36px; height: 36px; border: 1px solid var(--border2); border-radius: 10px; background: var(--card); color: var(--text2); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.icon-btn:active { transform: scale(0.93); background: var(--card2); }
+
+/* Nav Tabs */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(6,11,24,0.95); backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding: 8px 0 calc(var(--safe-bottom) + 4px);
+  display: flex;
+}
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 6px 0; transition: all 0.2s; }
+.nav-item .nav-icon { font-size: 20px; line-height: 1; }
+.nav-item .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.3px; color: var(--text3); transition: color 0.2s; }
+.nav-item.active .nav-label { color: var(--accent2); }
+.nav-item.active .nav-icon { filter: drop-shadow(0 0 6px var(--accent)); }
+
+/* Main Content */
+.main { flex: 1; padding: 16px 16px calc(80px + var(--safe-bottom)); max-width: 480px; margin: 0 auto; width: 100%; }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.card-title { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.card-title-icon { font-size: 16px; }
+
+/* Inputs */
+.input-group { margin-bottom: 12px; }
+.input-label { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px; }
+.input-wrap { position: relative; }
+.input-prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; font-family: 'DM Mono', monospace; z-index: 1; }
+.input-suffix { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; z-index: 1; }
+input, select, textarea {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius2); color: var(--text); font-family: 'Outfit', sans-serif;
+  font-size: 15px; padding: 11px 14px; outline: none; transition: all 0.2s; appearance: none; -webkit-appearance: none;
+}
+input:focus, select:focus { border-color: var(--accent); background: var(--bg2); box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+input.has-prefix { padding-left: 28px; }
+input.has-suffix { padding-right: 40px; }
+input::placeholder { color: var(--text3); }
+select option { background: var(--bg3); }
+
+/* Big Address Input */
+.address-input-wrap { position: relative; }
+.address-input {
+  width: 100%; background: var(--bg3); border: 1.5px solid var(--border2);
+  border-radius: 14px; color: var(--text); font-size: 16px;
+  padding: 14px 50px 14px 48px; outline: none; transition: all 0.25s;
+  font-family: 'Outfit', sans-serif;
+}
+.address-input:focus { border-color: var(--accent); background: var(--bg2); box-shadow: 0 0 0 4px rgba(59,130,246,0.1); }
+.address-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 20px; }
+.address-clear { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 20px; cursor: pointer; background: none; border: none; padding: 2px; }
+
+/* Search Button */
+.btn-primary {
+  width: 100%; background: linear-gradient(135deg, var(--accent), var(--purple));
+  border: none; border-radius: var(--radius2); color: white; font-family: 'Outfit', sans-serif;
+  font-size: 15px; font-weight: 600; padding: 13px; cursor: pointer; transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius2);
+  color: var(--text2); font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 500;
+  padding: 10px 16px; cursor: pointer; transition: all 0.2s;
+}
+.btn-secondary:active { transform: scale(0.97); }
+.btn-small {
+  background: var(--card2); border: 1px solid var(--border2); border-radius: 8px;
+  color: var(--text2); font-size: 12px; font-weight: 500; padding: 5px 10px;
+  cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif;
+}
+.btn-small.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* Toggle */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.toggle-row:last-child { border-bottom: none; }
+.toggle-label { font-size: 14px; color: var(--text2); }
+.toggle-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.toggle { position: relative; width: 44px; height: 26px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: var(--bg3); border: 1px solid var(--border2); border-radius: 13px; cursor: pointer; transition: all 0.25s; }
+.toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: var(--text3); border-radius: 50%; transition: all 0.25s; }
+.toggle input:checked + .toggle-slider { background: var(--accent); border-color: var(--accent); }
+.toggle input:checked + .toggle-slider:before { transform: translateX(18px); background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+
+/* Segment Control */
+.segment { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 3px; gap: 2px; margin-bottom: 14px; }
+.segment-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; background: transparent; color: var(--text3); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif; }
+.segment-btn.active { background: var(--card2); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+/* Metric Cards */
+.metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 12px; }
+.metric-card.highlight { background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(139,92,246,0.08)); border-color: rgba(59,130,246,0.3); }
+.metric-card.positive { background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.05)); border-color: rgba(16,185,129,0.25); }
+.metric-card.negative { background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.05)); border-color: rgba(239,68,68,0.25); }
+.metric-card.gold { background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.05)); border-color: rgba(245,158,11,0.3); }
+.metric-label { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px; }
+.metric-value { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; color: var(--text); letter-spacing: -0.5px; }
+.metric-value.green { color: var(--green2); }
+.metric-value.red { color: var(--red2); }
+.metric-value.gold { color: var(--gold2); }
+.metric-value.blue { color: var(--accent2); }
+.metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+/* Line Items */
+.line-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.line-item:last-child { border-bottom: none; }
+.line-item-label { font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+.line-item-label .dot { width: 6px; height: 6px; border-radius: 50%; }
+.line-item-value { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); font-weight: 500; }
+.line-item-value.neg { color: var(--red2); }
+.line-item-value.pos { color: var(--green2); }
+.line-item.total { border-top: 1px solid var(--border2); padding-top: 11px; margin-top: 4px; }
+.line-item.total .line-item-label { font-weight: 600; color: var(--text); font-size: 14px; }
+.line-item.total .line-item-value { font-size: 15px; }
+
+/* Year Row */
+.year-row { display: flex; align-items: stretch; gap: 0; border-bottom: 1px solid var(--border); }
+.year-row:last-child { border-bottom: none; }
+.year-cell { flex: 1; padding: 10px 6px; text-align: center; font-size: 12px; }
+.year-cell.label { color: var(--text3); font-size: 11px; text-align: left; flex: 1.5; }
+.year-header { display: flex; background: var(--bg3); border-radius: 8px; margin-bottom: 8px; }
+.year-header .year-cell { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 0.5px; }
+
+/* Property Card */
+.prop-summary { background: linear-gradient(135deg, var(--bg2), var(--bg3)); border: 1px solid var(--border2); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.prop-address { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.prop-meta { font-size: 12px; color: var(--text3); margin-bottom: 12px; }
+.prop-price { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--text); letter-spacing: -1px; }
+.prop-price-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.prop-stats { display: flex; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
+.prop-stat { display: flex; flex-direction: column; gap: 2px; }
+.prop-stat-value { font-size: 14px; font-weight: 600; color: var(--text2); }
+.prop-stat-label { font-size: 10px; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; }
+
+/* STR Revenue Badge */
+.str-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 6px 10px; font-size: 12px; color: var(--green2); font-weight: 500; }
+
+/* Loading */
+.loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 16px; }
+.spinner { width: 36px; height: 36px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 14px; color: var(--text3); text-align: center; }
+.loading-step { font-size: 12px; color: var(--accent); font-family: 'DM Mono', monospace; }
+
+/* Empty State */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 24px; text-align: center; }
+.empty-icon { font-size: 52px; margin-bottom: 16px; opacity: 0.6; }
+.empty-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text2); margin-bottom: 8px; }
+.empty-sub { font-size: 14px; color: var(--text3); line-height: 1.6; }
+
+/* Saved List */
+.saved-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+.saved-item:active { transform: scale(0.98); border-color: var(--accent); }
+.saved-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.saved-item-address { font-size: 13px; font-weight: 600; color: var(--text); }
+.saved-item-date { font-size: 11px; color: var(--text3); }
+.saved-item-price { font-family: 'DM Mono', monospace; font-size: 18px; color: var(--gold2); }
+.saved-item-metrics { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+.saved-chip { font-size: 11px; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; color: var(--text3); }
+.saved-chip.green { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.25); color: var(--green2); }
+.saved-chip.red { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.25); color: var(--red2); }
+.saved-chip.gold { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.25); color: var(--gold2); }
+
+/* Section divider */
+.section-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0 12px; }
+.section-divider-line { flex: 1; height: 1px; background: var(--border); }
+.section-divider-text { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; }
+
+/* Info tooltip row */
+.info-row { display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: rgba(59,130,246,0.07); border: 1px solid rgba(59,130,246,0.15); border-radius: 8px; margin-bottom: 12px; }
+.info-row-text { font-size: 12px; color: var(--text3); line-height: 1.4; }
+
+/* Cost seg badge */
+.costseg-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.3); border-radius: 8px; padding: 4px 10px; font-size: 11px; color: var(--purple); font-weight: 600; letter-spacing: 0.3px; }
+
+/* Floating action hint */
+.fab-hint { position: fixed; bottom: calc(80px + var(--safe-bottom) + 12px); right: 16px; background: var(--accent); color: white; border-radius: 28px; padding: 10px 16px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 20px rgba(59,130,246,0.4); cursor: pointer; z-index: 90; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+.fab-hint:active { transform: scale(0.96); }
+
+/* Animations */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.fade-up { animation: fadeUp 0.4s ease forwards; }
+.fade-up-1 { animation-delay: 0.05s; }
+.fade-up-2 { animation-delay: 0.1s; }
+.fade-up-3 { animation-delay: 0.15s; }
+.fade-up-4 { animation-delay: 0.2s; }
+.fade-up-5 { animation-delay: 0.25s; }
+
+/* Alert */
+.alert { border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; font-size: 13px; line-height: 1.5; }
+.alert.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: var(--red2); }
+.alert.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: var(--green2); }
+.alert.info { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); color: var(--accent2); }
+
+/* Range slider */
+input[type=range] { -webkit-appearance: none; appearance: none; height: 4px; background: var(--border2); border-radius: 2px; outline: none; padding: 0; border: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 2px 8px rgba(59,130,246,0.4); }
+
+/* Tabs inside card */
+.inner-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.inner-tab { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1px solid var(--border); background: var(--bg3); color: var(--text3); }
+.inner-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* Chart bars */
+.bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin: 12px 0; }
+.bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+.bar { width: 100%; border-radius: 4px 4px 0 0; transition: all 0.3s; min-height: 4px; }
+.bar-label { font-size: 9px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.bar-val { font-size: 9px; color: var(--text2); font-family: 'DM Mono', monospace; }
+
+.slider-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.slider-val { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--accent2); font-weight: 500; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+```
+
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ─── IndexedDB persistence ────────────────────────────────────────────────────
+const DB_NAME = ‘STRAnalyzer’, DB_VERSION = 1, STORE = ‘analyses’;
+function openDB() {
+return new Promise((res, rej) => {
+const req = indexedDB.open(DB_NAME, DB_VERSION);
+req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, { keyPath: ‘id’ });
+req.onsuccess = e => res(e.target.result);
+req.onerror = e => rej(e.target.error);
+});
+}
+async function dbGet(id) {
+const db = await openDB();
+return new Promise((res, rej) => {
+const tx = db.transaction(STORE, ‘readonly’);
+const req = tx.objectStore(STORE).get(id);
+req.onsuccess = () => res(req.result);
+req.onerror = () => rej(req.error);
+});
+}
+async function dbGetAll() {
+const db = await openDB();
+return new Promise((res, rej) => {
+const tx = db.transaction(STORE, ‘readonly’);
+const req = tx.objectStore(STORE).getAll();
+req.onsuccess = () => res(req.result.sort((a,b) => b.savedAt - a.savedAt));
+req.onerror = () => rej(req.error);
+});
+}
+async function dbPut(obj) {
+const db = await openDB();
+return new Promise((res, rej) => {
+const tx = db.transaction(STORE, ‘readwrite’);
+tx.objectStore(STORE).put(obj);
+tx.oncomplete = () => res();
+tx.onerror = () => rej(tx.error);
+});
+}
+async function dbDelete(id) {
+const db = await openDB();
+return new Promise((res, rej) => {
+const tx = db.transaction(STORE, ‘readwrite’);
+tx.objectStore(STORE).delete(id);
+tx.oncomplete = () => res();
+tx.onerror = () => rej(tx.error);
+});
+}
+
+// ─── Financial Engine ─────────────────────────────────────────────────────────
+function calcMortgage(principal, annualRate, years) {
+if (annualRate === 0) return principal / (years * 12);
+const r = annualRate / 100 / 12, n = years * 12;
+return principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+}
+
+function buildAnalysis(prop, inputs) {
+const price = prop.price;
+const dp = inputs.loanType === ‘cash’ ? price : price * (inputs.downPct / 100);
+const loanAmt = price - dp;
+const monthly = inputs.loanType === ‘cash’ ? 0 : calcMortgage(loanAmt, inputs.interestRate, inputs.loanTermYears);
+const annual = monthly * 12;
+
+// STR Revenue
+const grossRevenue = prop.strGrossRevenue; // monthly
+const platforms = [‘Airbnb’, ‘VRBO’, ‘Direct’];
+const platFeeRate = 0.03; // platform listing fee avg ~3%
+const airbnbFee = grossRevenue * 0.6 * 0.03; // Airbnb guest fee portion (host ~3%)
+const vrboFee = grossRevenue * 0.3 * 0.05;
+const directFee = 0; // direct booking no fee
+const platformFees = airbnbFee + vrboFee + directFee;
+const occupancyRevenue = grossRevenue;
+
+// Expenses monthly
+const cleaning = inputs.cleaningFee * inputs.cleaningFreq; // per month
+const propertyMgmt = inputs.selfManage ? 0 : occupancyRevenue * (inputs.mgmtPct / 100);
+const utilities = inputs.utilities;
+const insurance = prop.insurance / 12;
+const propTax = prop.propertyTax / 12;
+const hoa = prop.hoa;
+const supplies = inputs.supplies;
+const maintenance = price * 0.01 / 12; // 1% annual
+const capex = price * 0.005 / 12; // 0.5% annual
+const vacancy = occupancyRevenue * ((100 - inputs.occupancyPct) / 100);
+
+const totalExpenses = monthly + cleaning + propertyMgmt + utilities + insurance + propTax + hoa + supplies + maintenance + capex + vacancy + platformFees;
+const noi = occupancyRevenue - (totalExpenses - monthly); // before debt service
+const cashFlow = occupancyRevenue - totalExpenses;
+const annualCashFlow = cashFlow * 12;
+
+// Depreciation
+const landValue = price * 0.2;
+const buildingValue = price - landValue;
+const straightLineDep = buildingValue / 27.5; // annual MACRS
+
+let depreciationY1 = straightLineDep;
+let costSegBreakdown = null;
+if (inputs.costSeg) {
+// Cost seg: 5yr (15%), 7yr (10%), 15yr (15%), 27.5yr (60%)
+const fiveYr = buildingValue * 0.15;
+const sevenYr = buildingValue * 0.10;
+const fifteenYr = buildingValue * 0.15;
+const residential = buildingValue * 0.60;
+const bonusRate = inputs.bonusPct / 100;
+const y1CostSeg = (fiveYr + sevenYr + fifteenYr) * bonusRate + residential / 27.5;
+costSegBreakdown = {
+fiveYr: fiveYr * bonusRate,
+sevenYr: sevenYr * bonusRate,
+fifteenYr: fifteenYr * bonusRate,
+residential: residential / 27.5,
+total: y1CostSeg
+};
+depreciationY1 = y1CostSeg;
+}
+
+// Tax savings (active STR material participation)
+const taxableIncome = annualCashFlow - depreciationY1; // paper loss
+const taxSavings = taxableIncome < 0 ? Math.abs(taxableIncome) * (inputs.taxRate / 100) : 0;
+
+// ROI Year 1
+const totalCashIn = dp + inputs.closingCosts + inputs.furnishing;
+const cashOnCash = (annualCashFlow / totalCashIn) * 100;
+const totalReturnY1 = ((annualCashFlow + taxSavings) / totalCashIn) * 100;
+
+// 5-Year Model
+const years5 = [];
+let equityAccum = dp;
+let loanBalance = loanAmt;
+let cumTaxSavings = 0;
+
+for (let y = 1; y <= 5; y++) {
+const revGrowth = Math.pow(1 + inputs.revGrowth / 100, y - 1);
+const expGrowth = Math.pow(1 + inputs.expGrowth / 100, y - 1);
+const yRev = occupancyRevenue * 12 * revGrowth;
+const yExp = (totalExpenses - monthly) * 12 * expGrowth + annual;
+const yCF = yRev - yExp;
+
+```
+// Remaining loan balance
+const r = inputs.interestRate / 100 / 12;
+const n = inputs.loanTermYears * 12;
+const paymentsIn = (y - 1) * 12;
+const remainBal = inputs.loanType === 'cash' ? 0 :
+  loanAmt * (Math.pow(1 + r, n) - Math.pow(1 + r, paymentsIn)) / (Math.pow(1 + r, n) - 1);
+const equityPaydown = loanAmt - remainBal;
+
+// Appreciation
+const appValue = price * Math.pow(1 + inputs.appreciationRate / 100, y);
+
+// Tax savings (straight line after Y1 if cost seg)
+const yDep = y === 1 ? depreciationY1 : straightLineDep;
+const yTaxable = yCF - yDep;
+const yTaxSave = yTaxable < 0 ? Math.abs(yTaxable) * (inputs.taxRate / 100) : 0;
+cumTaxSavings += yTaxSave;
+
+// Cap rate based exit value
+const exitCapRate = inputs.exitCapRate / 100;
+const yNOI = yRev - (yExp - annual); // operating expenses only
+const exitValCapRate = yNOI / exitCapRate;
+const exitVal = Math.max(appValue, exitValCapRate);
+const exitEquity = exitVal - remainBal - exitVal * 0.06; // 6% selling costs
+
+years5.push({
+  year: y, cashFlow: yCF, taxSavings: yTaxSave, cumTaxSavings,
+  equityPaydown, appValue, exitVal, exitEquity,
+  totalReturn: yCF + yTaxSave,
+});
+```
+
+}
+
+const y5 = years5[4];
+const totalROI5 = ((years5.reduce((s, y) => s + y.cashFlow + y.taxSavings, 0) + y5.exitEquity - totalCashIn) / totalCashIn) * 100;
+
+return {
+prop, inputs, dp, loanAmt, monthly, loanBalance: loanAmt,
+occupancyRevenue, platformFees, cleaning, propertyMgmt,
+utilities, insurance: prop.insurance / 12, propTax: prop.propertyTax / 12,
+hoa: prop.hoa, supplies, maintenance, capex, vacancy,
+totalExpenses, noi, cashFlow, annualCashFlow,
+straightLineDep, depreciationY1, costSegBreakdown,
+taxSavings, taxableIncome, totalCashIn,
+cashOnCash, totalReturnY1, years5, totalROI5,
+cumTaxSavings5: y5.cumTaxSavings
+};
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const fmt = (n, dec = 0) => n == null ? ‘—’ : n.toLocaleString(‘en-US’, { minimumFractionDigits: dec, maximumFractionDigits: dec });
+const fmtD = (n, dec = 0) => n == null ? ‘—’ : ‘$’ + Math.abs(n).toLocaleString(‘en-US’, { minimumFractionDigits: dec, maximumFractionDigits: dec });
+const fmtPct = (n, dec = 1) => n == null ? ‘—’ : n.toFixed(dec) + ‘%’;
+const fmtSign = (n) => (n >= 0 ? ‘+’ : ‘-’) + ‘$’ + fmt(Math.abs(n));
+
+// ─── Claude API call ──────────────────────────────────────────────────────────
+async function fetchPropertyData(address, setStep) {
+setStep(‘🔍 Parsing address…’);
+await new Promise(r => setTimeout(r, 400));
+
+setStep(‘🏠 Fetching property data…’);
+const prompt = `You are a real estate data API. Given the address "${address}", return a JSON object (no markdown, no explanation, only valid JSON) with these exact keys: { "address": "full formatted address", "city": "city name", "state": "state abbreviation", "zip": "zip code", "price": estimated listing price as integer, "beds": number of bedrooms, "baths": number of bathrooms (as decimal like 2.5), "sqft": estimated square footage as integer, "yearBuilt": estimated year built as integer, "propertyType": "Single Family" or "Condo" or "Townhouse" or "Multi-Family", "propertyTax": estimated annual property tax as integer, "hoa": estimated monthly HOA as integer (0 if none), "insurance": estimated annual homeowner's insurance as integer, "strGrossRevenue": estimated monthly STR gross revenue as integer (based on location and size), "occupancyRate": estimated STR occupancy rate as integer (50-85), "avgNightlyRate": estimated average nightly rate as integer, "strMarket": "string describing the STR market demand (e.g., Beach town, high demand)", "marketNotes": "1-2 sentence market note about STR potential" } Use realistic values for the given address. For STR revenue, base it on similar properties on Airbnb/VRBO in that area.`;
+
+const apiKey = localStorage.getItem(‘str_api_key’) || ‘’;
+if (!apiKey) throw new Error(‘NO_API_KEY’);
+
+const resp = await fetch(“https://api.anthropic.com/v1/messages”, {
+method: “POST”,
+headers: {
+“Content-Type”: “application/json”,
+“x-api-key”: apiKey,
+“anthropic-version”: “2023-06-01”
+},
+body: JSON.stringify({
+model: “claude-sonnet-4-20250514”,
+max_tokens: 1000,
+messages: [{ role: “user”, content: prompt }]
+})
+});
+
+if (!resp.ok) {
+const errText = await resp.text().catch(() => ‘’);
+throw new Error(‘API_ERROR:’ + resp.status + ‘:’ + errText);
+}
+const data = await resp.json();
+if (!data.content || !data.content.length) throw new Error(‘EMPTY_RESPONSE’);
+const text = data.content.map(b => b.text || ‘’).join(’’).replace(/`json|`/g, ‘’).trim();
+let json;
+try { json = JSON.parse(text); } catch(e) { throw new Error(‘PARSE_ERROR:’ + text.slice(0,200)); }
+
+setStep(‘✅ Property loaded!’);
+return json;
+}
+
+// ─── Components ───────────────────────────────────────────────────────────────
+
+function Toggle({ checked, onChange }) {
+return (
+<label className="toggle">
+<input type=“checkbox” checked={checked} onChange={e => onChange(e.target.checked)} />
+<span className="toggle-slider" />
+</label>
+);
+}
+
+function SliderRow({ label, value, min, max, step=1, unit=’’, onChange }) {
+return (
+<div className="input-group">
+<div className="slider-row">
+<div className="input-label">{label}</div>
+<div className="slider-val">{value}{unit}</div>
+</div>
+<input type=“range” min={min} max={max} step={step} value={value}
+onChange={e => onChange(Number(e.target.value))} />
+</div>
+);
+}
+
+// ─── Search Tab ───────────────────────────────────────────────────────────────
+function SearchTab({ onAnalyze }) {
+const [address, setAddress] = useState(’’);
+const [loading, setLoading] = useState(false);
+const [step, setStep] = useState(’’);
+const [error, setError] = useState(’’);
+const [inputs, setInputs] = useState({
+loanType: ‘conventional’,
+downPct: 20,
+interestRate: 7.25,
+loanTermYears: 30,
+occupancyPct: 72,
+cleaningFee: 150,
+cleaningFreq: 10,
+utilities: 250,
+supplies: 80,
+mgmtPct: 20,
+selfManage: false,
+closingCosts: 8000,
+furnishing: 25000,
+taxRate: 32,
+revGrowth: 3,
+expGrowth: 2,
+appreciationRate: 3,
+exitCapRate: 6.5,
+costSeg: false,
+bonusPct: 60,
+});
+
+const upd = (k, v) => setInputs(p => ({ …p, [k]: v }));
+
+const handleSearch = async () => {
+if (!address.trim()) return;
+setLoading(true); setError(’’);
+try {
+const prop = await fetchPropertyData(address, setStep);
+const analysis = buildAnalysis(prop, inputs);
+analysis.id = Date.now() + ‘_’ + Math.random().toString(36).substr(2, 6);
+analysis.savedAt = Date.now();
+await dbPut(analysis);
+onAnalyze(analysis);
+} catch (e) {
+if (e.message === ‘NO_API_KEY’) {
+setError(‘⚙️ No API key set. Tap the settings icon (⚙️) in the top right to add your Anthropic API key.’);
+} else if (e.message.startsWith(‘API_ERROR:401’)) {
+setError(‘🔑 Invalid API key. Check your key in Settings — it should start with “sk-ant-…”’);
+} else if (e.message.startsWith(‘API_ERROR:’)) {
+setError(‘🌐 API error: ’ + e.message + ‘. Check your internet connection and try again.’);
+} else {
+setError(‘❌ ’ + e.message + ‘. Try a more specific address (include city, state, zip).’);
+}
+} finally {
+setLoading(false); setStep(’’);
+}
+};
+
+return (
+<div>
+{/* Address Bar */}
+<div className="card fade-up">
+<div className=“input-group” style={{ marginBottom: 12 }}>
+<div className="address-input-wrap">
+<span className="address-icon">📍</span>
+<input className=“address-input” placeholder=“Enter property address…”
+value={address} onChange={e => setAddress(e.target.value)}
+onKeyDown={e => e.key === ‘Enter’ && handleSearch()} />
+{address && <button className=“address-clear” onClick={() => setAddress(’’)}>✕</button>}
+</div>
+</div>
+{error && <div className=“alert error” style={{ marginBottom: 10 }}>{error}</div>}
+<button className=“btn-primary” onClick={handleSearch} disabled={loading || !address.trim()}>
+{loading ? ‘⏳ Analyzing…’ : ‘🔍 Analyze Property’}
+</button>
+{loading && (
+<div style={{ marginTop: 12, textAlign: ‘center’ }}>
+<div className="loading-step">{step}</div>
+</div>
+)}
+</div>
+
+```
+  {/* Loan Settings */}
+  <div className="section-divider"><div className="section-divider-line" /><div className="section-divider-text">Financing</div><div className="section-divider-line" /></div>
+  <div className="card fade-up fade-up-1">
+    <div className="segment">
+      {[['conventional','🏦 Conventional'],['dscr','📊 DSCR'],['cash','💵 Cash']].map(([v,l]) => (
+        <button key={v} className={`segment-btn${inputs.loanType===v?' active':''}`} onClick={() => upd('loanType',v)}>{l}</button>
+      ))}
+    </div>
+    {inputs.loanType !== 'cash' && (
+      <div className="two-col">
+        <div className="input-group">
+          <div className="input-label">Down Payment %</div>
+          <div className="input-wrap">
+            <input type="number" value={inputs.downPct} onChange={e => upd('downPct', +e.target.value)} className="has-suffix" />
+            <span className="input-suffix">%</span>
+          </div>
+        </div>
+        <div className="input-group">
+          <div className="input-label">Interest Rate</div>
+          <div className="input-wrap">
+            <input type="number" step="0.125" value={inputs.interestRate} onChange={e => upd('interestRate', +e.target.value)} className="has-suffix" />
+            <span className="input-suffix">%</span>
+          </div>
+        </div>
+        <div className="input-group">
+          <div className="input-label">Term (Years)</div>
+          <input type="number" value={inputs.loanTermYears} onChange={e => upd('loanTermYears', +e.target.value)} />
+        </div>
+        <div className="input-group">
+          <div className="input-label">Closing Costs</div>
+          <div className="input-wrap">
+            <span className="input-prefix">$</span>
+            <input type="number" value={inputs.closingCosts} onChange={e => upd('closingCosts', +e.target.value)} className="has-prefix" />
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+
+  {/* STR Settings */}
+  <div className="section-divider"><div className="section-divider-line" /><div className="section-divider-text">STR Operations</div><div className="section-divider-line" /></div>
+  <div className="card fade-up fade-up-2">
+    <SliderRow label="Target Occupancy" value={inputs.occupancyPct} min={40} max={95} unit="%" onChange={v => upd('occupancyPct',v)} />
+    <div className="two-col">
+      <div className="input-group">
+        <div className="input-label">Cleaning Fee</div>
+        <div className="input-wrap">
+          <span className="input-prefix">$</span>
+          <input type="number" value={inputs.cleaningFee} onChange={e => upd('cleaningFee', +e.target.value)} className="has-prefix" />
+        </div>
+      </div>
+      <div className="input-group">
+        <div className="input-label">Cleans/Month</div>
+        <input type="number" value={inputs.cleaningFreq} onChange={e => upd('cleaningFreq', +e.target.value)} />
+      </div>
+      <div className="input-group">
+        <div className="input-label">Utilities</div>
+        <div className="input-wrap">
+          <span className="input-prefix">$</span>
+          <input type="number" value={inputs.utilities} onChange={e => upd('utilities', +e.target.value)} className="has-prefix" />
+        </div>
+      </div>
+      <div className="input-group">
+        <div className="input-label">Supplies</div>
+        <div className="input-wrap">
+          <span className="input-prefix">$</span>
+          <input type="number" value={inputs.supplies} onChange={e => upd('supplies', +e.target.value)} className="has-prefix" />
+        </div>
+      </div>
+      <div className="input-group">
+        <div className="input-label">Furnishing Budget</div>
+        <div className="input-wrap">
+          <span className="input-prefix">$</span>
+          <input type="number" value={inputs.furnishing} onChange={e => upd('furnishing', +e.target.value)} className="has-prefix" />
+        </div>
+      </div>
+    </div>
+    <div className="toggle-row">
+      <div><div className="toggle-label">Self-Manage</div><div className="toggle-sub">Skip property mgmt fees</div></div>
+      <Toggle checked={inputs.selfManage} onChange={v => upd('selfManage',v)} />
+    </div>
+    {!inputs.selfManage && (
+      <div className="input-group" style={{ marginTop: 10 }}>
+        <div className="input-label">Mgmt Fee %</div>
+        <div className="input-wrap">
+          <input type="number" value={inputs.mgmtPct} onChange={e => upd('mgmtPct', +e.target.value)} className="has-suffix" />
+          <span className="input-suffix">%</span>
+        </div>
+      </div>
+    )}
+  </div>
+
+  {/* Tax & Depreciation */}
+  <div className="section-divider"><div className="section-divider-line" /><div className="section-divider-text">Tax & Depreciation</div><div className="section-divider-line" /></div>
+  <div className="card fade-up fade-up-3">
+    <div className="info-row">
+      <span>🏛️</span>
+      <div className="info-row-text">Active STR investor — paper losses from depreciation offset ordinary income (no passive activity limit).</div>
+    </div>
+    <SliderRow label="Your Tax Rate" value={inputs.taxRate} min={10} max={50} unit="%" onChange={v => upd('taxRate',v)} />
+    <div className="toggle-row">
+      <div>
+        <div className="toggle-label">Cost Segregation Study</div>
+        <div className="toggle-sub">Accelerate 5/7/15yr assets with bonus depreciation</div>
+      </div>
+      <Toggle checked={inputs.costSeg} onChange={v => upd('costSeg',v)} />
+    </div>
+    {inputs.costSeg && (
+      <div style={{ marginTop: 10 }}>
+        <SliderRow label="Bonus Depreciation %" value={inputs.bonusPct} min={0} max={100} unit="%" onChange={v => upd('bonusPct',v)} />
+        <div className="costseg-badge">⚡ Cost Seg Active — 5yr/7yr/15yr accelerated</div>
+      </div>
+    )}
+  </div>
+
+  {/* 5-Year Assumptions */}
+  <div className="section-divider"><div className="section-divider-line" /><div className="section-divider-text">5-Year Assumptions</div><div className="section-divider-line" /></div>
+  <div className="card fade-up fade-up-4">
+    <div className="two-col">
+      <div className="input-group">
+        <div className="input-label">Revenue Growth/yr</div>
+        <div className="input-wrap">
+          <input type="number" step="0.5" value={inputs.revGrowth} onChange={e => upd('revGrowth', +e.target.value)} className="has-suffix" />
+          <span className="input-suffix">%</span>
+        </div>
+      </div>
+      <div className="input-group">
+        <div className="input-label">Expense Growth/yr</div>
+        <div className="input-wrap">
+          <input type="number" step="0.5" value={inputs.expGrowth} onChange={e => upd('expGrowth', +e.target.value)} className="has-suffix" />
+          <span className="input-suffix">%</span>
+        </div>
+      </div>
+      <div className="input-group">
+        <div className="input-label">Appreciation/yr</div>
+        <div className="input-wrap">
+          <input type="number" step="0.5" value={inputs.appreciationRate} onChange={e => upd('appreciationRate', +e.target.value)} className="has-suffix" />
+          <span className="input-suffix">%</span>
+        </div>
+      </div>
+      <div className="input-group">
+        <div className="input-label">Exit Cap Rate</div>
+        <div className="input-wrap">
+          <input type="number" step="0.25" value={inputs.exitCapRate} onChange={e => upd('exitCapRate', +e.target.value)} className="has-suffix" />
+          <span className="input-suffix">%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style={{ height: 16 }} />
+</div>
+```
+
+);
+}
+
+// ─── Results Tab ──────────────────────────────────────────────────────────────
+function ResultsTab({ analysis }) {
+const [tab, setTab] = useState(‘overview’);
+if (!analysis) {
+return (
+<div className="empty-state">
+<div className="empty-icon">🏡</div>
+<div className="empty-title">No Analysis Yet</div>
+<div className="empty-sub">Search for a property address to see your STR cash flow, depreciation, and 5-year model.</div>
+</div>
+);
+}
+
+const a = analysis;
+
+// Bar chart max
+const cfVals = a.years5.map(y => y.cashFlow);
+const maxCF = Math.max(…cfVals, 1);
+
+return (
+<div>
+{/* Property Card */}
+<div className="prop-summary fade-up">
+<div className="prop-address">{a.prop.address}</div>
+<div className="prop-meta">{a.prop.beds}bd · {a.prop.baths}ba · {fmt(a.prop.sqft)} sqft · {a.prop.propertyType}</div>
+<div className="prop-price">{fmtD(a.prop.price)}</div>
+<div className="prop-price-sub">Estimated listing price</div>
+<div className="prop-stats">
+<div className="prop-stat"><div className="prop-stat-value">{fmtD(a.monthly)}/mo</div><div className="prop-stat-label">Mortgage</div></div>
+<div className="prop-stat"><div className="prop-stat-value">{a.prop.occupancyRate}%</div><div className="prop-stat-label">Est. Occ.</div></div>
+<div className="prop-stat"><div className="prop-stat-value">{fmtD(a.prop.avgNightlyRate)}</div><div className="prop-stat-label">Avg/Night</div></div>
+</div>
+<div style={{ marginTop: 12 }}>
+<div className="str-badge">🏖️ {a.prop.strMarket}</div>
+</div>
+{a.prop.marketNotes && <div style={{ fontSize: 12, color: ‘var(–text3)’, marginTop: 8, lineHeight: 1.5 }}>{a.prop.marketNotes}</div>}
+</div>
+
+```
+  {/* Inner Tabs */}
+  <div className="inner-tabs">
+    {[['overview','📊 Overview'],['cashflow','💰 Cash Flow'],['tax','🏛 Tax'],['5yr','📈 5-Year']].map(([v,l]) => (
+      <button key={v} className={`inner-tab${tab===v?' active':''}`} onClick={() => setTab(v)}>{l}</button>
+    ))}
+  </div>
+
+  {/* Overview */}
+  {tab === 'overview' && (
+    <div>
+      <div className="metrics-grid fade-up">
+        <div className={`metric-card ${a.cashFlow >= 0 ? 'positive' : 'negative'}`}>
+          <div className="metric-label">Monthly Cash Flow</div>
+          <div className={`metric-value ${a.cashFlow >= 0 ? 'green' : 'red'}`}>{fmtSign(a.cashFlow)}</div>
+          <div className="metric-sub">{fmtD(a.annualCashFlow)}/yr</div>
+        </div>
+        <div className="metric-card highlight">
+          <div className="metric-label">Cash-on-Cash ROI</div>
+          <div className={`metric-value ${a.cashOnCash >= 0 ? 'blue' : 'red'}`}>{fmtPct(a.cashOnCash)}</div>
+          <div className="metric-sub">Year 1</div>
+        </div>
+        <div className="metric-card gold">
+          <div className="metric-label">Tax-Adj. ROI Y1</div>
+          <div className="metric-value gold">{fmtPct(a.totalReturnY1)}</div>
+          <div className="metric-sub">Inc. depreciation</div>
+        </div>
+        <div className="metric-card highlight">
+          <div className="metric-label">5-Year Total ROI</div>
+          <div className={`metric-value ${a.totalROI5 >= 0 ? 'blue' : 'red'}`}>{fmtPct(a.totalROI5)}</div>
+          <div className="metric-sub">Cap rate exit</div>
+        </div>
+      </div>
+      <div className="metrics-grid fade-up fade-up-1">
+        <div className="metric-card">
+          <div className="metric-label">Gross STR Revenue</div>
+          <div className="metric-value">{fmtD(a.occupancyRevenue)}</div>
+          <div className="metric-sub">per month</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Down Payment</div>
+          <div className="metric-value">{fmtD(a.dp)}</div>
+          <div className="metric-sub">Total cash in: {fmtD(a.totalCashIn)}</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Year 1 Tax Savings</div>
+          <div className="metric-value green">{fmtD(a.taxSavings)}</div>
+          <div className="metric-sub">{fmtD(a.depreciationY1)}/yr dep.</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">NOI (Annual)</div>
+          <div className="metric-value">{fmtD(a.noi * 12)}</div>
+          <div className="metric-sub">Pre-debt service</div>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Cash Flow */}
+  {tab === 'cashflow' && (
+    <div className="card fade-up">
+      <div className="card-title" style={{ marginBottom: 14 }}><span className="card-title-icon">💰</span> Monthly P&L</div>
+      <div className="line-item">
+        <div className="line-item-label"><span className="dot" style={{ background: 'var(--green2)' }} />Gross STR Revenue</div>
+        <div className="line-item-value pos">{fmtD(a.occupancyRevenue)}</div>
+      </div>
+      <div style={{ paddingLeft: 8 }}>
+        <div className="line-item"><div className="line-item-label">– Mortgage (P&I)</div><div className="line-item-value neg">-{fmtD(a.monthly)}</div></div>
+        <div className="line-item"><div className="line-item-label">– Platform Fees (Airbnb/VRBO)</div><div className="line-item-value neg">-{fmtD(a.platformFees)}</div></div>
+        <div className="line-item"><div className="line-item-label">– Cleaning</div><div className="line-item-value neg">-{fmtD(a.cleaning)}</div></div>
+        <div className="line-item"><div className="line-item-label">– Property Tax</div><div className="line-item-value neg">-{fmtD(a.propTax)}</div></div>
+        <div className="line-item"><div className="line-item-label">– Insurance</div><div className="line-item-value neg">-{fmtD(a.insurance)}</div></div>
+        {a.hoa > 0 && <div className="line-item"><div className="line-item-label">– HOA</div><div className="line-item-value neg">-{fmtD(a.hoa)}</div></div>}
+        {!a.inputs.selfManage && <div className="line-item"><div className="line-item-label">– Property Mgmt</div><div className="line-item-value neg">-{fmtD(a.propertyMgmt)}</div></div>}
+        <div className="line-item"><div className="line-item-label">– Utilities</div><div className="line-item-value neg">-{fmtD(a.utilities)}</div></div>
+        <div className="line-item"><div className="line-item-label">– Supplies & Amenities</div><div className="line-item-value neg">-{fmtD(a.supplies)}</div></div>
+        <div className="line-item"><div className="line-item-label">– Maintenance (1%/yr)</div><div className="line-item-value neg">-{fmtD(a.maintenance)}</div></div>
+        <div className="line-item"><div className="line-item-label">– CapEx Reserve (0.5%)</div><div className="line-item-value neg">-{fmtD(a.capex)}</div></div>
+        <div className="line-item"><div className="line-item-label">– Vacancy Loss</div><div className="line-item-value neg">-{fmtD(a.vacancy)}</div></div>
+      </div>
+      <div className="line-item total">
+        <div className="line-item-label">Net Monthly Cash Flow</div>
+        <div className={`line-item-value ${a.cashFlow >= 0 ? 'pos' : 'neg'}`}>{fmtSign(a.cashFlow)}</div>
+      </div>
+      <div className="line-item">
+        <div className="line-item-label" style={{ color: 'var(--text2)' }}>Annual Cash Flow</div>
+        <div className={`line-item-value ${a.annualCashFlow >= 0 ? 'pos' : 'neg'}`}>{fmtSign(a.annualCashFlow)}</div>
+      </div>
+      <div className="line-item">
+        <div className="line-item-label" style={{ color: 'var(--text2)' }}>Total Cash Invested</div>
+        <div className="line-item-value">{fmtD(a.totalCashIn)}</div>
+      </div>
+    </div>
+  )}
+
+  {/* Tax */}
+  {tab === 'tax' && (
+    <div>
+      <div className="card fade-up">
+        <div className="card-title" style={{ marginBottom: 14 }}><span className="card-title-icon">🏛</span> Depreciation</div>
+        <div className="info-row">
+          <span>⚡</span>
+          <div className="info-row-text">As an <strong>active STR investor</strong> (material participation, avg stay &lt;7 days), depreciation losses are non-passive and can offset your W-2 income.</div>
+        </div>
+        {a.costSegBreakdown ? (
+          <>
+            <div className="costseg-badge" style={{ marginBottom: 12 }}>📐 Cost Segregation Study Active</div>
+            <div className="line-item"><div className="line-item-label">5-yr assets (fixtures, carpets)</div><div className="line-item-value">{fmtD(a.costSegBreakdown.fiveYr)}</div></div>
+            <div className="line-item"><div className="line-item-label">7-yr assets (appliances, equip)</div><div className="line-item-value">{fmtD(a.costSegBreakdown.sevenYr)}</div></div>
+            <div className="line-item"><div className="line-item-label">15-yr assets (land improvements)</div><div className="line-item-value">{fmtD(a.costSegBreakdown.fifteenYr)}</div></div>
+            <div className="line-item"><div className="line-item-label">Residential structure (27.5yr)</div><div className="line-item-value">{fmtD(a.costSegBreakdown.residential)}</div></div>
+            <div className="line-item total">
+              <div className="line-item-label">Year 1 Total Depreciation</div>
+              <div className="line-item-value pos">{fmtD(a.depreciationY1)}</div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="line-item"><div className="line-item-label">Building value (80% of purchase)</div><div className="line-item-value">{fmtD(a.prop.price * 0.8)}</div></div>
+            <div className="line-item"><div className="line-item-label">MACRS 27.5-yr straight line</div><div className="line-item-value">{fmtD(a.straightLineDep)}/yr</div></div>
+          </>
+        )}
+      </div>
+      <div className="card fade-up fade-up-1">
+        <div className="card-title" style={{ marginBottom: 14 }}><span className="card-title-icon">💸</span> Tax Impact Year 1</div>
+        <div className="line-item"><div className="line-item-label">Annual Cash Flow</div><div className={`line-item-value ${a.annualCashFlow >= 0 ? 'pos' : 'neg'}`}>{fmtSign(a.annualCashFlow)}</div></div>
+        <div className="line-item"><div className="line-item-label">Less: Depreciation</div><div className="line-item-value neg">-{fmtD(a.depreciationY1)}</div></div>
+        <div className="line-item total">
+          <div className="line-item-label">Taxable Income (Paper {a.taxableIncome < 0 ? 'Loss' : 'Income'})</div>
+          <div className={`line-item-value ${a.taxableIncome < 0 ? 'pos' : 'neg'}`}>{fmtSign(a.taxableIncome)}</div>
+        </div>
+        <div className="line-item">
+          <div className="line-item-label">Tax Savings @ {a.inputs.taxRate}%</div>
+          <div className="line-item-value pos">{fmtD(a.taxSavings)}</div>
+        </div>
+        <div className="line-item">
+          <div className="line-item-label" style={{ color: 'var(--text2)' }}>True After-Tax Cash Flow</div>
+          <div className="line-item-value pos">{fmtD(a.annualCashFlow + a.taxSavings)}/yr</div>
+        </div>
+      </div>
+      <div className="metrics-grid fade-up fade-up-2">
+        <div className="metric-card gold">
+          <div className="metric-label">5-Yr Tax Savings</div>
+          <div className="metric-value gold">{fmtD(a.cumTaxSavings5)}</div>
+          <div className="metric-sub">Cumulative</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Dep. per Month</div>
+          <div className="metric-value blue">{fmtD(a.depreciationY1 / 12)}</div>
+          <div className="metric-sub">Non-cash write-off</div>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* 5-Year */}
+  {tab === '5yr' && (
+    <div>
+      {/* Bar chart */}
+      <div className="card fade-up">
+        <div className="card-title" style={{ marginBottom: 8 }}><span className="card-title-icon">📈</span> Annual Cash Flow</div>
+        <div className="bar-chart">
+          {a.years5.map(y => (
+            <div key={y.year} className="bar-wrap">
+              <div className="bar-val">{y.cashFlow >= 0 ? '+' : ''}{(y.cashFlow/1000).toFixed(1)}k</div>
+              <div className="bar" style={{
+                height: `${Math.max(8, (Math.abs(y.cashFlow) / maxCF) * 60)}px`,
+                background: y.cashFlow >= 0 ? 'linear-gradient(to top, var(--green), var(--green2))' : 'linear-gradient(to top, var(--red), var(--red2))'
+              }} />
+              <div className="bar-label">Yr {y.year}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Year table */}
+      <div className="card fade-up fade-up-1">
+        <div className="year-header">
+          <div className="year-cell label" style={{ fontSize: 10, color: 'var(--text3)' }}>METRIC</div>
+          {a.years5.map(y => <div key={y.year} className="year-cell">Yr {y.year}</div>)}
+        </div>
+        {[
+          { label: 'Cash Flow', key: 'cashFlow', fmt: n => (n>=0?'+':'')+fmtD(n) },
+          { label: 'Tax Savings', key: 'taxSavings', fmt: fmtD },
+          { label: 'Prop Value', key: 'appValue', fmt: n => '$'+(n/1000).toFixed(0)+'k' },
+          { label: 'Exit Value', key: 'exitVal', fmt: n => '$'+(n/1000).toFixed(0)+'k' },
+          { label: 'Exit Equity', key: 'exitEquity', fmt: n => '$'+(n/1000).toFixed(0)+'k' },
+          { label: 'Cum. Tax $', key: 'cumTaxSavings', fmt: n => '$'+(n/1000).toFixed(0)+'k' },
+        ].map(row => (
+          <div key={row.label} className="year-row">
+            <div className="year-cell label" style={{ color: 'var(--text3)' }}>{row.label}</div>
+            {a.years5.map(y => (
+              <div key={y.year} className="year-cell" style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: 'var(--text2)' }}>
+                {row.fmt(y[row.key])}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Summary */}
+      <div className="metrics-grid fade-up fade-up-2">
+        <div className="metric-card positive">
+          <div className="metric-label">5-Yr Cash Flow</div>
+          <div className="metric-value green">{fmtD(a.years5.reduce((s,y)=>s+y.cashFlow,0))}</div>
+        </div>
+        <div className="metric-card gold">
+          <div className="metric-label">5-Yr Tax Savings</div>
+          <div className="metric-value gold">{fmtD(a.cumTaxSavings5)}</div>
+        </div>
+        <div className="metric-card highlight">
+          <div className="metric-label">Year 5 Exit Equity</div>
+          <div className="metric-value blue">{fmtD(a.years5[4].exitEquity)}</div>
+          <div className="metric-sub">After selling costs</div>
+        </div>
+        <div className="metric-card highlight">
+          <div className="metric-label">Total ROI (5yr)</div>
+          <div className={`metric-value ${a.totalROI5>=0?'blue':'red'}`}>{fmtPct(a.totalROI5)}</div>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+```
+
+);
+}
+
+// ─── Saved Tab ────────────────────────────────────────────────────────────────
+function SavedTab({ onLoad }) {
+const [list, setList] = useState([]);
+const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+dbGetAll().then(items => { setList(items); setLoading(false); }).catch(() => setLoading(false));
+}, []);
+
+const handleDelete = async (id, e) => {
+e.stopPropagation();
+await dbDelete(id);
+setList(l => l.filter(i => i.id !== id));
+};
+
+if (loading) return <div className="loading-wrap"><div className="spinner" /><div className="loading-text">Loading saved analyses…</div></div>;
+if (!list.length) return (
+<div className="empty-state">
+<div className="empty-icon">💾</div>
+<div className="empty-title">No Saved Analyses</div>
+<div className="empty-sub">Analyze a property and it will automatically be saved here. All data is stored locally on your device.</div>
+</div>
+);
+
+return (
+<div>
+<div className=“info-row” style={{ marginBottom: 12 }}>
+<span>📱</span>
+<div className="info-row-text">{list.length} propert{list.length===1?‘y’:‘ies’} saved locally on your device.</div>
+</div>
+{list.map(a => (
+<div key={a.id} className=“saved-item” onClick={() => onLoad(a)}>
+<div className="saved-item-header">
+<div className="saved-item-address">{a.prop?.address}</div>
+<div style={{ display:‘flex’, gap:6, alignItems:‘center’ }}>
+<div className="saved-item-date">{new Date(a.savedAt).toLocaleDateString()}</div>
+<button onClick={e => handleDelete(a.id,e)} style={{ background:‘none’, border:‘none’, color:‘var(–text3)’, cursor:‘pointer’, fontSize:16, padding:2 }}>🗑</button>
+</div>
+</div>
+<div className="saved-item-price">{fmtD(a.prop?.price)}</div>
+<div className="saved-item-metrics">
+<div className={`saved-chip ${a.cashFlow>=0?'green':'red'}`}>CF: {fmtSign(a.cashFlow)}/mo</div>
+<div className="saved-chip gold">CoC: {fmtPct(a.cashOnCash)}</div>
+<div className="saved-chip gold">Tax: {fmtD(a.taxSavings)}/yr</div>
+<div className="saved-chip">5yr: {fmtPct(a.totalROI5)}</div>
+</div>
+</div>
+))}
+</div>
+);
+}
+
+// ─── Settings Tab ─────────────────────────────────────────────────────────────
+function SettingsTab() {
+const [apiKey, setApiKey] = useState(() => localStorage.getItem(‘str_api_key’) || ‘’);
+const [saved, setSaved] = useState(false);
+const [show, setShow] = useState(false);
+
+const handleSave = () => {
+localStorage.setItem(‘str_api_key’, apiKey.trim());
+setSaved(true);
+setTimeout(() => setSaved(false), 2000);
+};
+
+const handleClear = () => {
+localStorage.removeItem(‘str_api_key’);
+setApiKey(’’);
+};
+
+const masked = apiKey ? apiKey.slice(0,10) + ‘••••••••••••••••’ + apiKey.slice(-4) : ‘’;
+
+return (
+<div>
+<div className="card fade-up">
+<div className=“card-title” style={{ marginBottom: 14 }}>⚙️ API Configuration</div>
+<div className=“info-row” style={{ marginBottom: 14 }}>
+<span>🔑</span>
+<div className="info-row-text">
+Get your free API key at <strong>console.anthropic.com</strong> → API Keys → Create Key. It starts with <code style={{fontFamily:‘monospace’,fontSize:11}}>sk-ant-api03-…</code>
+</div>
+</div>
+<div className="input-group">
+<div className="input-label">Anthropic API Key</div>
+<div className="input-wrap">
+<input
+type={show ? ‘text’ : ‘password’}
+placeholder=“sk-ant-api03-…”
+value={apiKey}
+onChange={e => { setApiKey(e.target.value); setSaved(false); }}
+style={{ paddingRight: 50 }}
+/>
+<button onClick={() => setShow(s => !s)} style={{ position:‘absolute’, right:12, top:‘50%’, transform:‘translateY(-50%)’, background:‘none’, border:‘none’, color:‘var(–text3)’, cursor:‘pointer’, fontSize:16 }}>
+{show ? ‘🙈’ : ‘👁’}
+</button>
+</div>
+{apiKey && !show && <div style={{ fontSize:11, color:‘var(–text3)’, marginTop:4 }}>{masked}</div>}
+</div>
+{saved && <div className=“alert success” style={{ marginBottom: 10 }}>✅ API key saved to your device!</div>}
+<div style={{ display:‘flex’, gap:8 }}>
+<button className="btn-primary" onClick={handleSave} disabled={!apiKey.trim()}>💾 Save API Key</button>
+{apiKey && <button className="btn-secondary" onClick={handleClear}>Clear</button>}
+</div>
+</div>
+
+```
+  <div className="card fade-up fade-up-1">
+    <div className="card-title" style={{ marginBottom: 12 }}>🔒 Privacy & Storage</div>
+    <div className="toggle-row">
+      <div><div className="toggle-label">API Key Storage</div><div className="toggle-sub">Stored locally on your device only</div></div>
+      <span style={{ fontSize:12, color:'var(--green2)', fontWeight:600 }}>LOCAL</span>
+    </div>
+    <div className="toggle-row">
+      <div><div className="toggle-label">Property Analyses</div><div className="toggle-sub">Saved in IndexedDB on device</div></div>
+      <span style={{ fontSize:12, color:'var(--green2)', fontWeight:600 }}>LOCAL</span>
+    </div>
+    <div className="toggle-row">
+      <div><div className="toggle-label">No Server / No Cloud</div><div className="toggle-sub">Nothing leaves your device except API calls</div></div>
+      <span style={{ fontSize:12, color:'var(--green2)', fontWeight:600 }}>✓</span>
+    </div>
+  </div>
+
+  <div className="card fade-up fade-up-2">
+    <div className="card-title" style={{ marginBottom: 12 }}>📖 How to Get Your API Key</div>
+    {[
+      ['1', 'Go to console.anthropic.com'],
+      ['2', 'Sign up or log in'],
+      ['3', 'Click "API Keys" in the left sidebar'],
+      ['4', 'Click "Create Key" and name it "STR Analyzer"'],
+      ['5', 'Copy the key and paste it above'],
+      ['6', 'Add a credit card — usage is ~$0.01 per property lookup'],
+    ].map(([n, text]) => (
+      <div key={n} style={{ display:'flex', gap:10, padding:'8px 0', borderBottom:'1px solid var(--border)', alignItems:'flex-start' }}>
+        <div style={{ width:22, height:22, borderRadius:'50%', background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, flexShrink:0, marginTop:1 }}>{n}</div>
+        <div style={{ fontSize:13, color:'var(--text2)', lineHeight:1.5 }}>{text}</div>
+      </div>
+    ))}
+  </div>
+</div>
+```
+
+);
+}
+
+// ─── Main App ─────────────────────────────────────────────────────────────────
+function App() {
+const [activeTab, setActiveTab] = useState(() => {
+const hasKey = !!localStorage.getItem(‘str_api_key’);
+return hasKey ? ‘search’ : ‘settings’;
+});
+const [analysis, setAnalysis] = useState(null);
+
+const handleAnalyze = (a) => {
+setAnalysis(a);
+setActiveTab(‘results’);
+};
+
+const handleLoad = (a) => {
+setAnalysis(a);
+setActiveTab(‘results’);
+};
+
+const tabs = [
+{ id: ‘search’, icon: ‘🔍’, label: ‘Search’ },
+{ id: ‘results’, icon: ‘📊’, label: ‘Results’ },
+{ id: ‘saved’, icon: ‘💾’, label: ‘Saved’ },
+{ id: ‘settings’, icon: ‘⚙️’, label: ‘Settings’ },
+];
+
+return (
+<div className="app">
+<header className="app-header">
+<div className="header-inner">
+<div className="logo">
+<div className="logo-icon">🏡</div>
+<div>
+<div className="logo-text">STR Analyzer</div>
+<div className="logo-sub">Short-Term Rental Engine</div>
+</div>
+</div>
+{analysis && (
+<button className=“icon-btn” title=“New search” onClick={() => setActiveTab(‘search’)}>＋</button>
+)}
+</div>
+</header>
+
+```
+  <main className="main">
+    {activeTab === 'search' && <SearchTab onAnalyze={handleAnalyze} />}
+    {activeTab === 'results' && <ResultsTab analysis={analysis} />}
+    {activeTab === 'saved' && <SavedTab onLoad={handleLoad} />}
+    {activeTab === 'settings' && <SettingsTab />}
+  </main>
+
+  <nav className="bottom-nav">
+    {tabs.map(t => (
+      <div key={t.id} className={`nav-item ${activeTab===t.id?'active':''}`} onClick={() => setActiveTab(t.id)}>
+        <span className="nav-icon">{t.icon}</span>
+        <span className="nav-label">{t.label}</span>
+      </div>
+    ))}
+  </nav>
+</div>
+```
+
+);
+}
+
+ReactDOM.render(<App />, document.getElementById(‘root’));
+</script>
+
+</body>
+</html>
