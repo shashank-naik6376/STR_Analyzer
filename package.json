@@ -1,8 +1,5 @@
 {
-  "version": 2,
-  "functions": {
-    "api/proxy.js": {
-      "maxDuration": 30
-    }
-  }
+  "name": "str-analyzer",
+  "version": "1.0.0"
 }
+
