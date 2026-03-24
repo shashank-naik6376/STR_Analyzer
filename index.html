@@ -319,6 +319,37 @@ body{display:flex;flex-direction:column;height:100vh;height:100dvh}
       </div>
     </div>
 
+    <!-- Annual Operating Costs -->
+    <div class="card">
+      <div class="card-title">Annual Operating Costs</div>
+      <div class="inp-wrap">
+        <label>Property Tax ($/yr)</label>
+        <input class="inp" type="text" id="inp-proptax" placeholder="Auto from API" inputmode="numeric">
+      </div>
+      <div class="inp-wrap">
+        <label>HOA ($/mo)</label>
+        <input class="inp" type="text" id="inp-hoa" placeholder="0" inputmode="numeric">
+      </div>
+      <div class="inp-wrap">
+        <label>Lodging / Occupancy Tax (%)</label>
+        <input class="inp" type="text" id="inp-lodgtax" placeholder="0" inputmode="numeric" value="0">
+      </div>
+      <div class="inp-wrap">
+        <label>Insurance ($/yr)</label>
+        <input class="inp" type="text" id="inp-insurance" placeholder="Auto from API" inputmode="numeric">
+      </div>
+      <div class="slider-row">
+        <label>Maintenance</label>
+        <input type="range" id="sl-maint" min="0.5" max="3" value="1" step="0.25" oninput="updSlider(this,'sv-maint','%')">
+        <span class="sv" id="sv-maint">1%</span>
+      </div>
+      <div class="slider-row">
+        <label>CapEx Reserve</label>
+        <input type="range" id="sl-capex" min="0" max="2" value="0.5" step="0.25" oninput="updSlider(this,'sv-capex','%')">
+        <span class="sv" id="sv-capex">0.5%</span>
+      </div>
+    </div>
+
     <!-- Tax & Depreciation -->
     <div class="card">
       <div class="card-title">Tax & Depreciation</div>
@@ -544,6 +575,14 @@ function getInputs() {
     furnishing: parseFloat(document.getElementById('sl-furn').value),
     selfManaged: document.getElementById('tog-self').classList.contains('on'),
     mgmtPct: parseFloat(document.getElementById('sl-mgmt').value) / 100,
+    // Annual operating costs (empty string = use API/default)
+    propTaxOverride: document.getElementById('inp-proptax').value.replace(/[^0-9.]/g, ''),
+    hoaOverride: document.getElementById('inp-hoa').value.replace(/[^0-9.]/g, ''),
+    lodgingTaxPct: parseFloat(document.getElementById('inp-lodgtax').value.replace(/[^0-9.]/g, '') || '0') / 100,
+    insuranceOverride: document.getElementById('inp-insurance').value.replace(/[^0-9.]/g, ''),
+    maintPct: parseFloat(document.getElementById('sl-maint').value) / 100,
+    capexPct: parseFloat(document.getElementById('sl-capex').value) / 100,
+    // Tax & depreciation
     taxRate: parseFloat(document.getElementById('sl-tax').value) / 100,
     costSeg: document.getElementById('tog-costseg').classList.contains('on'),
     bonusPct: parseFloat(document.getElementById('sl-bonus').value) / 100,
@@ -577,23 +616,28 @@ function analyze(prop, inp) {
   // Platform fees: Airbnb 60% @ 3%, VRBO 30% @ 5%, Direct 10% @ 0%
   var platformFees = monthlyRev * (0.60 * 0.03 + 0.30 * 0.05 + 0.10 * 0);
 
+  // Lodging / occupancy tax
+  var lodgingTaxMo = monthlyRev * inp.lodgingTaxPct;
+
   // Cleaning
   var cleaningCost = inp.cleanFee * inp.cleansPerMonth;
 
   // Mgmt fee
   var mgmtFee = inp.selfManaged ? 0 : monthlyRev * inp.mgmtPct;
 
-  // Fixed monthly
-  var propTaxMo = (prop.propertyTax || price * 0.012) / 12;
-  var insuranceMo = (prop.insurance || price * 0.005) / 12;
-  var hoaMo = prop.hoa || 0;
-  var maintenanceMo = (price * 0.01) / 12;
-  var capexMo = (price * 0.005) / 12;
+  // Annual operating costs — use user override if provided, else API value, else default from price
+  var propTaxAnnual = inp.propTaxOverride ? parseFloat(inp.propTaxOverride) : (prop.propertyTax || price * 0.012);
+  var propTaxMo = propTaxAnnual / 12;
+  var insuranceAnnual = inp.insuranceOverride ? parseFloat(inp.insuranceOverride) : (prop.insurance || price * 0.005);
+  var insuranceMo = insuranceAnnual / 12;
+  var hoaMo = inp.hoaOverride ? parseFloat(inp.hoaOverride) : (prop.hoa || 0);
+  var maintenanceMo = (price * inp.maintPct) / 12;
+  var capexMo = (price * inp.capexPct) / 12;
   // Vacancy is already reflected in revenue (rate × occupancy × 30)
   var vacancyCost = 0;
 
   // Monthly expenses
-  var opEx = platformFees + cleaningCost + propTaxMo + insuranceMo + hoaMo +
+  var opEx = platformFees + lodgingTaxMo + cleaningCost + propTaxMo + insuranceMo + hoaMo +
              mgmtFee + inp.utilities + inp.supplies + maintenanceMo + capexMo;
   var totalEx = opEx + monthlyMortgage;
 
@@ -637,9 +681,11 @@ function analyze(prop, inp) {
   var cocROI = totalCashIn > 0 ? annualCF / totalCashIn : 0;
   var taxAdjROI = totalCashIn > 0 ? (annualCF + y1TaxSavings) / totalCashIn : 0;
 
-  // 6.5% Rule: Annual NOI >= Listing Price / 6.5
+  // 6.5% Rule (sniff test): Gross Annual Revenue >= Listing Price / 6.5
+  // Gross = nightly rate × occupancy × 365 (before any deductions)
+  var grossAnnualRev = avgNightlyRate * inp.occupancy * 365;
   var ruleTarget = price / 6.5;
-  var rulePass = annualNOI >= ruleTarget;
+  var rulePass = grossAnnualRev >= ruleTarget;
 
   // 5-Year Model
   var fiveYear = [];
@@ -707,6 +753,7 @@ function analyze(prop, inp) {
     monthlyRev: monthlyRev,
     monthlyMortgage: monthlyMortgage,
     platformFees: platformFees,
+    lodgingTaxMo: lodgingTaxMo,
     cleaningCost: cleaningCost,
     mgmtFee: mgmtFee,
     propTaxMo: propTaxMo,
@@ -737,6 +784,7 @@ function analyze(prop, inp) {
     cocROI: cocROI,
     taxAdjROI: taxAdjROI,
     // Rule
+    grossAnnualRev: grossAnnualRev,
     ruleTarget: ruleTarget,
     rulePass: rulePass,
     // 5-Year
@@ -795,9 +843,9 @@ function renderPropCard(a) {
 
   var ruleEl = document.getElementById('pc-rule');
   if (a.rulePass) {
-    ruleEl.innerHTML = '<span class="badge badge-pass">✓ 6.5% Rule — NOI ' + $d(a.annualNOI) + ' ≥ ' + $d(a.ruleTarget) + '</span>';
+    ruleEl.innerHTML = '<span class="badge badge-pass">✓ 6.5% Rule — Gross Rev ' + $d(a.grossAnnualRev) + ' ≥ ' + $d(a.ruleTarget) + '</span>';
   } else {
-    ruleEl.innerHTML = '<span class="badge badge-fail">✗ 6.5% Rule — NOI ' + $d(a.annualNOI) + ' < ' + $d(a.ruleTarget) + '</span>';
+    ruleEl.innerHTML = '<span class="badge badge-fail">✗ 6.5% Rule — Gross Rev ' + $d(a.grossAnnualRev) + ' < ' + $d(a.ruleTarget) + '</span>';
   }
 }
 
@@ -857,12 +905,13 @@ function renderCashFlow(a) {
   h += tr('Property Tax', $d(a.propTaxMo));
   h += tr('Insurance', $d(a.insuranceMo));
   if (a.hoaMo > 0) h += tr('HOA', $d(a.hoaMo));
+  if (a.lodgingTaxMo > 0) h += tr('Lodging Tax (' + (a.inp.lodgingTaxPct * 100).toFixed(0) + '%)', $d(a.lodgingTaxMo));
   h += tr('Cleaning', $d(a.cleaningCost));
   if (a.mgmtFee > 0) h += tr('Management', $d(a.mgmtFee));
   h += tr('Utilities', $d(a.utilities));
   h += tr('Supplies', $d(a.supplies));
-  h += tr('Maintenance (1%/yr)', $d(a.maintenanceMo));
-  h += tr('CapEx Reserve (0.5%/yr)', $d(a.capexMo));
+  h += tr('Maintenance (' + (a.inp.maintPct * 100).toFixed(1) + '%/yr)', $d(a.maintenanceMo));
+  h += tr('CapEx Reserve (' + (a.inp.capexPct * 100).toFixed(1) + '%/yr)', $d(a.capexMo));
   h += '<tr class="row-total"><td>Total Expenses</td><td>' + $d(a.totalEx) + '</td></tr>';
   h += '</table></div>';
 
