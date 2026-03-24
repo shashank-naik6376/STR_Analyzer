@@ -625,6 +625,7 @@ function renderResults(a) {
   document.getElementById('res-content').classList.remove('hidden');
   renderPropCard(a);
   renderAllTabs(a);
+  showIT('ov'); // reset to overview on fresh load
 }
 
 function renderPropCard(a) {
@@ -740,7 +741,7 @@ function renderAllTabs(a) {
       mc('Total ROI (5yr)',fP(a.roi5),a.roi5>=0?'blue':'red','',a.roi5>=0?'cb':'cr')+
     '</div>';
 
-  showIT('ov');
+  // don't reset active tab here
 }
 
 // ── 6.5% Rule ─────────────────────────────────────────────────────────────────
@@ -764,41 +765,46 @@ function rule65Badge(a) {
 }
 
 // ── Price override ────────────────────────────────────────────────────────────
-var overridePrice = null; // tracks current override so re-renders don't reset it
-
 function recalcPrice() {
   if (!curA) return;
+
   var input = document.getElementById('price-override');
-  if (!input) return;
-  var newPrice = parseInt(input.value);
-  if (!newPrice || newPrice < 1) { alert('Please enter a valid price'); return; }
+  if (!input) { alert('Input not found'); return; }
 
-  overridePrice = newPrice;         // remember so renderResults restores it
-  curA.prop.price = newPrice;       // mutate price on prop
+  // Strip any non-numeric chars (commas, $, spaces) before parsing
+  var raw = input.value.toString().replace(/[^0-9]/g, '');
+  var newPrice = parseInt(raw, 10);
 
-  // Full re-analysis with new price
-  var updated = analyze(curA.prop, curA.inp);
+  if (!newPrice || isNaN(newPrice) || newPrice < 1) {
+    alert('Please enter a valid price (numbers only)');
+    return;
+  }
+
+  // Deep clone the prop so we don't mutate the original reference
+  var newProp = JSON.parse(JSON.stringify(curA.prop));
+  newProp.price = newPrice;
+
+  // Full re-analysis with new price, keeping all original inputs
+  var updated = analyze(newProp, curA.inp);
   updated.id = curA.id;
   updated.savedAt = curA.savedAt;
   curA = updated;
 
-  // Save to IndexedDB
+  // Save
   dbPut(curA);
 
-  // Re-render all tabs
+  // Render ONLY the tabs — do NOT touch the prop card or the input
   renderAllTabs(curA);
 
-  // Restore the override value in the input (renderResults resets it)
-  var inp2 = document.getElementById('price-override');
-  if (inp2) inp2.value = newPrice;
+  // Manually update the displayed price and mortgage in prop card
+  var dp = document.getElementById('disp-price');
+  var dm = document.getElementById('disp-mo');
+  if (dp) { dp.textContent = fD(newPrice); dp.style.color='#34d399'; setTimeout(function(){dp.style.color='';},1200); }
+  if (dm) dm.textContent = fD(curA.mo)+'/mo';
 
-  // Flash the displayed price green
-  var priceEl = document.getElementById('disp-price');
-  if (priceEl) {
-    priceEl.style.color = '#34d399';
-    priceEl.textContent = fD(newPrice);
-    setTimeout(function(){ priceEl.style.color = ''; }, 1200);
-  }
+  // Update the 6.5% badge in place
+  var badge = document.querySelector('.rule-badge');
+  if (badge) badge.outerHTML = rule65Badge(curA);
 }
 
 // ── Saved tab ─────────────────────────────────────────────────────────────────
