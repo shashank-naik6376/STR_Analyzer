@@ -141,6 +141,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 .prop-meta{font-size:12px;color:#475569;margin-bottom:10px;}
 .prop-price{font-family:'DM Serif Display',serif;font-size:30px;}
 .prop-sub{font-size:12px;color:#475569;margin-top:2px;}
+.price-override{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.price-override input{background:#131f38;border:1px solid #253556;border-radius:8px;color:#f0f6ff;font-family:'DM Mono',monospace;font-size:18px;padding:7px 10px;outline:none;width:150px;-webkit-appearance:none;}
+.price-override input:focus{border-color:#3b82f6;}
+.price-override button{background:#3b82f6;border:none;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;padding:8px 14px;cursor:pointer;white-space:nowrap;}
+.price-override button:active{opacity:.8;}
+.override-lbl{font-size:11px;color:#475569;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;}
+.rule-badge{display:flex;align-items:center;gap:8px;margin-top:10px;padding:9px 12px;border-radius:9px;font-size:12px;font-weight:600;line-height:1.4;}
+.rule-badge.pass{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#34d399;}
+.rule-badge.fail{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;}
+.rule-icon{font-size:18px;flex-shrink:0;}
+.rule-detail{font-size:11px;opacity:.85;font-weight:400;margin-top:2px;}
 .prop-stats{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;}
 .ps-v{font-size:14px;font-weight:600;color:#94a3b8;}.ps-l{font-size:10px;color:#475569;text-transform:uppercase;letter-spacing:.5px;}
 .badge{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:7px;padding:5px 9px;font-size:12px;color:#34d399;margin-top:10px;}
@@ -616,15 +627,21 @@ function renderResults(a) {
   document.getElementById('prop-card').innerHTML =
     '<div class="prop-addr">'+a.prop.address+'</div>'+
     '<div class="prop-meta">'+a.prop.beds+'bd · '+a.prop.baths+'ba · '+fN(a.prop.sqft)+' sqft · '+a.prop.propertyType+'</div>'+
-    '<div class="prop-price">'+fD(a.prop.price)+'</div>'+
+    '<div class="prop-price" id="disp-price">'+fD(a.prop.price)+'</div>'+
     '<div class="prop-sub">Estimated listing price</div>'+
+    '<div class="override-lbl" style="margin-top:12px;">Override Price</div>'+
+    '<div class="price-override">'+
+      '<input type="number" id="price-override" value="'+a.prop.price+'" min="1" step="1000"/>'+
+      '<button onclick="recalcPrice()">↻ Recalculate</button>'+
+    '</div>'+
     '<div class="prop-stats">'+
-      '<div><div class="ps-v">'+fD(a.mo)+'/mo</div><div class="ps-l">Mortgage</div></div>'+
+      '<div><div class="ps-v" id="disp-mo">'+fD(a.mo)+'/mo</div><div class="ps-l">Mortgage</div></div>'+
       '<div><div class="ps-v">'+a.prop.occupancyRate+'%</div><div class="ps-l">Est. Occ.</div></div>'+
       '<div><div class="ps-v">'+fD(a.prop.avgNightlyRate)+'</div><div class="ps-l">Avg/Night</div></div>'+
     '</div>'+
     '<div class="badge">🏖️ '+a.prop.strMarket+'</div>'+
-    (a.prop.marketNotes?'<div style="font-size:12px;color:#475569;margin-top:8px;line-height:1.5;">'+a.prop.marketNotes+'</div>':'');
+    (a.prop.marketNotes?'<div style="font-size:12px;color:#475569;margin-top:8px;line-height:1.5;">'+a.prop.marketNotes+'</div>':'')+
+    rule65Badge(a);
 
   // Overview
   var cfCls=a.cf>=0?'green':'red', cfVC=a.cf>=0?'cg':'cr';
@@ -717,6 +734,55 @@ function renderResults(a) {
     '</div>';
 
   showIT('ov');
+}
+
+// ── 6.5% Rule ─────────────────────────────────────────────────────────────────
+function rule65Badge(a) {
+  var price = a.prop.price;
+  var target = price / 6.5;          // required monthly NET STR income
+  var actual = a.noi;                 // actual monthly NOI (net operating income pre-debt)
+  var pass = actual >= target;
+  var pct = ((actual / target) * 100).toFixed(0);
+  return '<div class="rule-badge '+(pass?'pass':'fail')+'">'+
+    '<div class="rule-icon">'+(pass?'✅':'❌')+'</div>'+
+    '<div>'+
+      '<div>'+(pass?'Passes':'Fails')+' the 6.5% Rule</div>'+
+      '<div class="rule-detail">'+
+        'Required: '+fD(Math.round(target))+'/mo &nbsp;·&nbsp; '+
+        'Actual NOI: '+fD(Math.round(actual))+'/mo &nbsp;·&nbsp; '+
+        pct+'% of target'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+// ── Price override ────────────────────────────────────────────────────────────
+function recalcPrice() {
+  if (!curA) return;
+  var newPrice = parseInt(document.getElementById('price-override').value);
+  if (!newPrice || newPrice < 1) return;
+
+  // Update the price in the current analysis object
+  curA.prop.price = newPrice;
+
+  // Re-run full financial analysis with new price
+  var updated = analyze(curA.prop, curA.inp);
+  updated.id = curA.id;
+  updated.savedAt = curA.savedAt;
+  curA = updated;
+
+  // Save updated analysis
+  dbPut(curA);
+
+  // Re-render everything
+  renderResults(curA);
+
+  // Flash confirmation on the price
+  var priceEl = document.getElementById('disp-price');
+  if (priceEl) {
+    priceEl.style.color = '#34d399';
+    setTimeout(function(){ priceEl.style.color = ''; }, 1000);
+  }
 }
 
 // ── Saved tab ─────────────────────────────────────────────────────────────────
