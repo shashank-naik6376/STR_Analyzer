@@ -1,5 +1,11 @@
 {
   "version": 2,
+  "routes": [
+    {
+      "src": "/api/proxy",
+      "dest": "/api/proxy.mjs"
+    }
+  ],
   "functions": {
     "api/proxy.mjs": {
       "maxDuration": 30
