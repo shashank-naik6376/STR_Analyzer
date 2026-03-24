@@ -788,50 +788,50 @@ function rule65Badge(a) {
 
 // ── Price override ────────────────────────────────────────────────────────────
 function recalcPrice() {
-  if (!curA) { alert('No analysis loaded'); return; }
+  if (!curA) return;
 
   var inp = document.getElementById('price-override');
-  if (!inp) { alert('Input element missing'); return; }
-
-  var raw = String(inp.value).replace(/[^0-9]/g,'');
+  var raw = inp ? inp.value.toString().replace(/[^0-9]/g,'') : '';
   var newPrice = parseInt(raw, 10);
-
-  if (!newPrice || isNaN(newPrice) || newPrice < 10000) {
-    alert('Please enter a valid price (numbers only, e.g. 450000)');
+  if (!newPrice || newPrice < 1000) {
+    alert('Enter a valid price e.g. 450000');
     return;
   }
 
-  // Deep clone prop, set new price
-  var newProp = JSON.parse(JSON.stringify(curA.prop));
-  newProp.price = newPrice;
+  // Build fresh prop and inp copies
+  var prop = JSON.parse(JSON.stringify(curA.prop));
+  var inputs = JSON.parse(JSON.stringify(curA.inp));
+  prop.price = newPrice;
 
-  // Re-run full analysis
-  var a = analyze(newProp, JSON.parse(JSON.stringify(curA.inp)));
+  // Full re-analysis
+  var a = analyze(prop, inputs);
   a.id = curA.id;
   a.savedAt = curA.savedAt;
   curA = a;
   dbPut(curA);
 
-  // Update prop card
-  updatePropCardNumbers(curA);
-
-  // Re-render ALL 4 tabs content
+  // Wipe and fully re-render from scratch — guaranteed fresh
+  var oi = document.getElementById('price-override');
+  if (oi) { oi.dataset.touched = ''; } // clear flag so renderPropCard resets value
+  document.getElementById('res-content').classList.add('hidden');
+  document.getElementById('res-empty').classList.add('hidden');
+  document.getElementById('res-content').classList.remove('hidden');
+  renderPropCard(curA);
   renderAllTabs(curA);
+  showIT('ov');
 
-  // Find which tab is currently active and force show it
-  var activeIT = 'ov';
-  ['ov','cf','tx','yr'].forEach(function(t) {
-    if (!document.getElementById('it-'+t).classList.contains('hidden')) activeIT = t;
-  });
-  showIT(activeIT);
+  // Put the user's price back in the input (renderPropCard resets it)
+  setTimeout(function() {
+    var i = document.getElementById('price-override');
+    if (i) i.value = newPrice;
+  }, 0);
 
-  // Visual confirmation
+  // Flash button green
   var btn = document.querySelector('.price-override button');
   if (btn) {
-    var orig = btn.textContent;
-    btn.textContent = '✅ Updated!';
+    btn.textContent = '✅ Done!';
     btn.style.background = '#10b981';
-    setTimeout(function(){ btn.textContent = orig; btn.style.background = ''; }, 1500);
+    setTimeout(function(){ btn.textContent = '↻ Recalc'; btn.style.background = ''; }, 1500);
   }
 }
 
