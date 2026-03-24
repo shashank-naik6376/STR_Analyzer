@@ -188,6 +188,19 @@ body{display:flex;flex-direction:column;height:100vh;height:100dvh}
 .pc .pc-price{font-size:24px;font-weight:800;color:var(--ac2);font-family:var(--mono)}
 .pc .pc-mo{font-size:12px;color:var(--tx3)}
 
+/* KPI hero strip */
+.kpi-strip{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+  margin:14px 0;padding:14px 0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
+}
+.kpi-strip .kpi{text-align:center}
+.kpi-strip .kpi .kv{font-size:20px;font-weight:800;font-family:var(--mono);line-height:1.2}
+.kpi-strip .kpi .kl{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+.kpi-strip .kpi .kv.k-pos{color:var(--gn)}
+.kpi-strip .kpi .kv.k-neg{color:var(--rd)}
+.kpi-strip .kpi .kv.k-ac{color:var(--ac2)}
+.kpi-strip .kpi .kv.k-yl{color:var(--yl)}
+
 /* Flash green on recalc */
 .btn-flash{background:var(--gn)!important;transition:background .1s}
 
@@ -416,12 +429,22 @@ body{display:flex;flex-direction:column;height:100vh;height:100dvh}
           <span class="pc-price" id="pc-price">$0</span>
           <span class="pc-mo" id="pc-mo">$0/mo est. mortgage</span>
         </div>
-        <div class="pc-rate-row" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
-          <span style="font-size:15px;font-weight:700;color:var(--yl);font-family:var(--mono)" id="pc-rate">$0/night</span>
-          <span style="font-size:12px;color:var(--tx3)" id="pc-rev-ref"></span>
-        </div>
         <div id="pc-rule"></div>
-        <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+
+        <!-- KPI Hero Strip -->
+        <div class="kpi-strip">
+          <div class="kpi"><div class="kv k-ac" id="kpi-rev">—</div><div class="kl">Projected Rev</div></div>
+          <div class="kpi"><div class="kv k-yl" id="kpi-adr">—</div><div class="kl">ADR</div></div>
+          <div class="kpi"><div class="kv" id="kpi-occ" style="color:var(--tx)">—</div><div class="kl">Occupancy</div></div>
+        </div>
+        <div class="kpi-strip" style="border-top:none;padding-top:0;margin-top:0">
+          <div class="kpi"><div class="kv" id="kpi-noi">—</div><div class="kl">Annual NOI</div></div>
+          <div class="kpi"><div class="kv" id="kpi-cf">—</div><div class="kl">Annual CF</div></div>
+          <div class="kpi"><div class="kv" id="kpi-coc">—</div><div class="kl">CoC ROI</div></div>
+        </div>
+
+        <!-- Override row -->
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <input class="inp" type="text" id="price-override" placeholder="New price" inputmode="numeric" style="width:110px;flex-shrink:0;font-size:14px;padding:8px 10px">
           <input class="inp" type="text" id="rate-override" placeholder="New $/night" inputmode="numeric" style="width:110px;flex-shrink:0;font-size:14px;padding:8px 10px">
           <button type="button" class="btn btn-sm" id="btn-recalc" onclick="recalcOverrides()">↻ Recalc</button>
@@ -636,8 +659,8 @@ function analyze(prop, inp) {
   // Vacancy is already reflected in revenue (rate × occupancy × 30)
   var vacancyCost = 0;
 
-  // Monthly expenses
-  var opEx = platformFees + lodgingTaxMo + cleaningCost + propTaxMo + insuranceMo + hoaMo +
+  // Monthly expenses (cleaning excluded — ADR already includes cleaning fee)
+  var opEx = platformFees + lodgingTaxMo + propTaxMo + insuranceMo + hoaMo +
              mgmtFee + inp.utilities + inp.supplies + maintenanceMo + capexMo;
   var totalEx = opEx + monthlyMortgage;
 
@@ -832,15 +855,25 @@ function renderPropCard(a) {
   document.getElementById('pc-price').textContent = $(a.prop.price);
   document.getElementById('pc-mo').textContent = $(Math.round(a.monthlyMortgage)) + '/mo est. mortgage';
 
-  // Nightly rate + derived revenue
-  document.getElementById('pc-rate').textContent = '$' + Math.round(a.avgNightlyRate) + '/night → ' + $d(a.monthlyRev) + '/mo';
-  var refEl = document.getElementById('pc-rev-ref');
-  if (a.apiBenchmarkRev > 0) {
-    refEl.textContent = '(API est: ' + $d(a.apiBenchmarkRev) + '/mo)';
-  } else {
-    refEl.textContent = '';
-  }
+  // KPI strip — row 1
+  document.getElementById('kpi-rev').textContent = $d(a.monthlyRev * 12) + '/yr';
+  document.getElementById('kpi-adr').textContent = '$' + Math.round(a.avgNightlyRate);
+  document.getElementById('kpi-occ').textContent = (a.inp.occupancy * 100).toFixed(0) + '%';
 
+  // KPI strip — row 2
+  var noiEl = document.getElementById('kpi-noi');
+  noiEl.textContent = $d(a.annualNOI);
+  noiEl.className = 'kv ' + (a.annualNOI >= 0 ? 'k-pos' : 'k-neg');
+
+  var cfEl = document.getElementById('kpi-cf');
+  cfEl.textContent = $d(a.annualCF);
+  cfEl.className = 'kv ' + (a.annualCF >= 0 ? 'k-pos' : 'k-neg');
+
+  var cocEl = document.getElementById('kpi-coc');
+  cocEl.textContent = pct(a.cocROI);
+  cocEl.className = 'kv ' + (a.cocROI >= 0 ? 'k-pos' : 'k-neg');
+
+  // 6.5% rule badge
   var ruleEl = document.getElementById('pc-rule');
   if (a.rulePass) {
     ruleEl.innerHTML = '<span class="badge badge-pass">✓ 6.5% Rule — Gross Rev ' + $d(a.grossAnnualRev) + ' ≥ ' + $d(a.ruleTarget) + '</span>';
@@ -906,7 +939,6 @@ function renderCashFlow(a) {
   h += tr('Insurance', $d(a.insuranceMo));
   if (a.hoaMo > 0) h += tr('HOA', $d(a.hoaMo));
   if (a.lodgingTaxMo > 0) h += tr('Lodging Tax (' + (a.inp.lodgingTaxPct * 100).toFixed(0) + '%)', $d(a.lodgingTaxMo));
-  h += tr('Cleaning', $d(a.cleaningCost));
   if (a.mgmtFee > 0) h += tr('Management', $d(a.mgmtFee));
   h += tr('Utilities', $d(a.utilities));
   h += tr('Supplies', $d(a.supplies));
