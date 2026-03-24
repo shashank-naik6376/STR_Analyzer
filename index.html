@@ -519,15 +519,14 @@ function fetchProp(address, onStep) {
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({model:'claude-3-5-sonnet-20241022',max_tokens:1000,messages:[{role:'user',content:prompt}]})
   }).then(function(r) {
-    if (r.status===401) throw new Error('API_ERR:401 — Invalid API key on server. Check Vercel env var ANTHROPIC_API_KEY.');
-    if (!r.ok) {
-      return r.json().then(function(e) {
-        throw new Error('API_ERR:'+r.status+' — '+(e.error||JSON.stringify(e)));
-      }).catch(function() {
-        throw new Error('API_ERR:'+r.status);
-      });
-    }
-    return r.json();
+    return r.text().then(function(txt) {
+      if (!r.ok) {
+        // Show the raw response so we know exactly what failed
+        throw new Error('Status ' + r.status + ': ' + txt);
+      }
+      try { return JSON.parse(txt); }
+      catch(e) { throw new Error('Bad JSON from proxy: ' + txt.slice(0,200)); }
+    });
   }).then(function(data) {
     var text = (data.content||[]).map(function(b){return b.text||'';}).join('').replace(/```json|```/g,'').trim();
     var m = text.match(/\{[\s\S]*\}/);
@@ -585,10 +584,7 @@ document.getElementById('s-btn').onclick = function() {
       goTab('results');
     })
     .catch(function(e) {
-      var msg = '❌ ';
-      if (e.message.indexOf('API_ERR')===0) msg += 'Server error ('+e.message+'). Check Vercel logs.';
-      else if (e.message==='NO_JSON') msg += 'Could not parse response. Try a more specific address with city, state, zip.';
-      else msg += e.message;
+      var msg = '❌ ' + e.message;
       errEl.textContent = msg; errEl.classList.remove('hidden');
     })
     .finally(function() {
