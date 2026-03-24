@@ -380,10 +380,15 @@ body{display:flex;flex-direction:column;height:100vh;height:100dvh}
           <span class="pc-price" id="pc-price">$0</span>
           <span class="pc-mo" id="pc-mo">$0/mo est. mortgage</span>
         </div>
+        <div class="pc-rate-row" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+          <span style="font-size:15px;font-weight:700;color:var(--yl);font-family:var(--mono)" id="pc-rate">$0/night</span>
+          <span style="font-size:12px;color:var(--tx3)" id="pc-rev-ref"></span>
+        </div>
         <div id="pc-rule"></div>
-        <div class="ovr-row">
-          <input class="inp" type="text" id="price-override" placeholder="New price" inputmode="numeric">
-          <button type="button" class="btn btn-sm" id="btn-recalc" onclick="recalcPrice()">↻ Recalc</button>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+          <input class="inp" type="text" id="price-override" placeholder="New price" inputmode="numeric" style="width:110px;flex-shrink:0;font-size:14px;padding:8px 10px">
+          <input class="inp" type="text" id="rate-override" placeholder="New $/night" inputmode="numeric" style="width:110px;flex-shrink:0;font-size:14px;padding:8px 10px">
+          <button type="button" class="btn btn-sm" id="btn-recalc" onclick="recalcOverrides()">↻ Recalc</button>
         </div>
       </div>
 
@@ -547,7 +552,12 @@ function getInputs() {
 /* ===== FINANCIAL ENGINE ===== */
 function analyze(prop, inp) {
   var price = prop.price;
-  var monthlyRev = prop.strGrossRevenue || 5000;
+
+  // Revenue: derived from nightly rate × occupancy × 30
+  var avgNightlyRate = prop.avgNightlyRate || 200;
+  var monthlyRev = avgNightlyRate * inp.occupancy * 30;
+  // Keep API benchmark for reference
+  var apiBenchmarkRev = prop.strGrossRevenue || 0;
 
   // Mortgage
   var downPay = price * inp.downPct;
@@ -574,11 +584,12 @@ function analyze(prop, inp) {
   var hoaMo = prop.hoa || 0;
   var maintenanceMo = (price * 0.01) / 12;
   var capexMo = (price * 0.005) / 12;
-  var vacancyCost = monthlyRev * (1 - inp.occupancy);
+  // Vacancy is already reflected in revenue (rate × occupancy × 30)
+  var vacancyCost = 0;
 
   // Monthly expenses
   var opEx = platformFees + cleaningCost + propTaxMo + insuranceMo + hoaMo +
-             mgmtFee + inp.utilities + inp.supplies + maintenanceMo + capexMo + vacancyCost;
+             mgmtFee + inp.utilities + inp.supplies + maintenanceMo + capexMo;
   var totalEx = opEx + monthlyMortgage;
 
   var monthlyNOI = monthlyRev - opEx;
@@ -684,6 +695,9 @@ function analyze(prop, inp) {
   return {
     prop: prop,
     inp: inp,
+    // Revenue source
+    avgNightlyRate: avgNightlyRate,
+    apiBenchmarkRev: apiBenchmarkRev,
     // Monthly
     monthlyRev: monthlyRev,
     monthlyMortgage: monthlyMortgage,
@@ -765,6 +779,15 @@ function renderPropCard(a) {
   document.getElementById('pc-price').textContent = $(a.prop.price);
   document.getElementById('pc-mo').textContent = $(Math.round(a.monthlyMortgage)) + '/mo est. mortgage';
 
+  // Nightly rate + derived revenue
+  document.getElementById('pc-rate').textContent = '$' + Math.round(a.avgNightlyRate) + '/night → ' + $d(a.monthlyRev) + '/mo';
+  var refEl = document.getElementById('pc-rev-ref');
+  if (a.apiBenchmarkRev > 0) {
+    refEl.textContent = '(API est: ' + $d(a.apiBenchmarkRev) + '/mo)';
+  } else {
+    refEl.textContent = '';
+  }
+
   var ruleEl = document.getElementById('pc-rule');
   var target = Math.round(a.ruleTarget);
   if (a.rulePass) {
@@ -817,9 +840,11 @@ function renderOverview(a) {
 function renderCashFlow(a) {
   var h = '<div class="card"><div class="card-title">Monthly Revenue</div>';
   h += '<table class="tbl">';
+  h += tr('Avg Nightly Rate', '$' + Math.round(a.avgNightlyRate));
+  h += tr('Occupancy', (a.inp.occupancy * 100).toFixed(0) + '% (' + Math.round(a.inp.occupancy * 30) + ' nights/mo)');
   h += tr('Gross STR Revenue', $d(a.monthlyRev));
+  if (a.apiBenchmarkRev > 0) h += tr('API Benchmark', $d(a.apiBenchmarkRev) + ' <span style="font-weight:400;color:var(--tx3);font-family:var(--font)">(reference)</span>');
   h += tr('Platform Fees', '-' + $d(a.platformFees));
-  h += tr('Vacancy (' + ((1-a.inp.occupancy)*100).toFixed(0) + '%)', '-' + $d(a.vacancyCost));
   h += '</table></div>';
 
   h += '<div class="card"><div class="card-title">Monthly Expenses</div>';
@@ -950,20 +975,34 @@ function showIT(id) {
   }
 }
 
-/* ===== PRICE OVERRIDE RECALC ===== */
-function recalcPrice() {
+/* ===== OVERRIDE RECALC (Price + Nightly Rate) ===== */
+function recalcOverrides() {
   if (!curA) return;
-  var raw = document.getElementById('price-override').value.replace(/[^0-9.]/g, '');
-  var newPrice = parseFloat(raw);
-  if (!newPrice || newPrice < 10000) {
+
+  var priceRaw = document.getElementById('price-override').value.replace(/[^0-9.]/g, '');
+  var rateRaw = document.getElementById('rate-override').value.replace(/[^0-9.]/g, '');
+  var newPrice = priceRaw ? parseFloat(priceRaw) : null;
+  var newRate = rateRaw ? parseFloat(rateRaw) : null;
+
+  // Need at least one override
+  if (!newPrice && !newRate) {
+    showStatus('Enter a new price or nightly rate to recalculate');
+    return;
+  }
+  if (newPrice && newPrice < 10000) {
     showStatus('Enter a valid price (e.g. 500000)');
+    return;
+  }
+  if (newRate && (newRate < 20 || newRate > 2000)) {
+    showStatus('Enter a valid nightly rate (e.g. 250)');
     return;
   }
 
   // Deep clone prop and inputs
   var prop = JSON.parse(JSON.stringify(curA.prop));
   var inputs = JSON.parse(JSON.stringify(curA.inp));
-  prop.price = newPrice;
+  if (newPrice) prop.price = newPrice;
+  if (newRate) prop.avgNightlyRate = newRate;
 
   // Re-run analysis
   var res = analyze(prop, inputs);
@@ -984,9 +1023,10 @@ function recalcPrice() {
   rc.classList.remove('hidden');
   rc.style.display = '';
 
-  // Restore price in input after render
+  // Restore typed values in inputs after render
   setTimeout(function() {
-    document.getElementById('price-override').value = newPrice;
+    if (newPrice) document.getElementById('price-override').value = newPrice;
+    if (newRate) document.getElementById('rate-override').value = newRate;
   }, 0);
 
   // Flash button green
@@ -1094,8 +1134,9 @@ function doAnalyze() {
     renderAllTabs(curA);
     showIT('ov');
 
-    // Clear override
+    // Clear overrides
     document.getElementById('price-override').value = '';
+    document.getElementById('rate-override').value = '';
 
     // Save
     saveToDB(curA);
@@ -1209,6 +1250,7 @@ function loadAnalysis(ts) {
       renderAllTabs(curA);
       showIT('ov');
       document.getElementById('price-override').value = '';
+      document.getElementById('rate-override').value = '';
 
       goTab('results');
     };
