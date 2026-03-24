@@ -223,7 +223,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 
 #step-txt{font-size:12px;color:#60a5fa;font-family:'DM Mono',monospace;text-align:center;margin-top:8px;min-height:18px;}
 
-.hidden{display:none!important;}
+.hidden{display:none!important;visibility:hidden;}
 </style>
 </head>
 <body>
@@ -413,7 +413,9 @@ function goTab(id) {
 // ── Inner result tabs ───────────────────────────────────────────────────────
 function showIT(id) {
   ['ov','cf','tx','yr'].forEach(function(t) {
-    document.getElementById('it-' + t).classList.toggle('hidden', t !== id);
+    var el = document.getElementById('it-' + t);
+    if (t === id) { el.classList.remove('hidden'); el.style.display = ''; }
+    else          { el.classList.add('hidden');    el.style.display = 'none'; }
   });
   document.querySelectorAll('.itabs button').forEach(function(b, i) {
     var ids = ['ov','cf','tx','yr'];
@@ -787,26 +789,50 @@ function rule65Badge(a) {
 // ── Price override ────────────────────────────────────────────────────────────
 function recalcPrice() {
   if (!curA) { alert('No analysis loaded'); return; }
+
   var inp = document.getElementById('price-override');
-  var val = inp.value.replace(/[^0-9]/g,'');
-  var newPrice = parseInt(val, 10);
-  if (!newPrice || newPrice < 10000) { alert('Enter a valid price (e.g. 450000)'); return; }
+  if (!inp) { alert('Input element missing'); return; }
 
-  // Update price on the stored prop
-  curA.prop.price = newPrice;
+  var raw = String(inp.value).replace(/[^0-9]/g,'');
+  var newPrice = parseInt(raw, 10);
 
-  // Re-run analysis with new price, same inputs
-  var a = analyze(curA.prop, curA.inp);
+  if (!newPrice || isNaN(newPrice) || newPrice < 10000) {
+    alert('Please enter a valid price (numbers only, e.g. 450000)');
+    return;
+  }
+
+  // Deep clone prop, set new price
+  var newProp = JSON.parse(JSON.stringify(curA.prop));
+  newProp.price = newPrice;
+
+  // Re-run full analysis
+  var a = analyze(newProp, JSON.parse(JSON.stringify(curA.inp)));
   a.id = curA.id;
   a.savedAt = curA.savedAt;
   curA = a;
   dbPut(curA);
 
-  // Update prop card numbers (price, mortgage, rule badge) WITHOUT touching the input
+  // Update prop card
   updatePropCardNumbers(curA);
 
-  // Update all 4 data tabs
+  // Re-render ALL 4 tabs content
   renderAllTabs(curA);
+
+  // Find which tab is currently active and force show it
+  var activeIT = 'ov';
+  ['ov','cf','tx','yr'].forEach(function(t) {
+    if (!document.getElementById('it-'+t).classList.contains('hidden')) activeIT = t;
+  });
+  showIT(activeIT);
+
+  // Visual confirmation
+  var btn = document.querySelector('.price-override button');
+  if (btn) {
+    var orig = btn.textContent;
+    btn.textContent = '✅ Updated!';
+    btn.style.background = '#10b981';
+    setTimeout(function(){ btn.textContent = orig; btn.style.background = ''; }, 1500);
+  }
 }
 
 // ── Saved tab ─────────────────────────────────────────────────────────────────
