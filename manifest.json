@@ -1,10 +1,9 @@
 {
   "name": "STR Analyzer",
-  "short_name": "STR Analyzer",
-  "description": "Short-Term Rental Investment Analyzer",
-  "start_url": "./index.html",
+  "short_name": "STR",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#060b18",
-  "theme_color": "#060b18",
-  "orientation": "portrait"
+  "background_color": "#0a0f1a",
+  "theme_color": "#0a0f1a",
+  "description": "Short-Term Rental Investment Analyzer"
 }
