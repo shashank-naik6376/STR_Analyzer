@@ -620,10 +620,14 @@ function li(lbl, val, vc) { return '<div class="li"><div class="li-l">'+lbl+'</d
 function liT(lbl, val, vc) { return '<div class="li tot"><div class="li-l">'+lbl+'</div><div class="li-v '+(vc||'')+'">'+val+'</div></div>'; }
 
 function renderResults(a) {
+  overridePrice = null; // fresh analysis resets override
   document.getElementById('res-empty').classList.add('hidden');
   document.getElementById('res-content').classList.remove('hidden');
+  renderPropCard(a);
+  renderAllTabs(a);
+}
 
-  // Prop header
+function renderPropCard(a) {
   document.getElementById('prop-card').innerHTML =
     '<div class="prop-addr">'+a.prop.address+'</div>'+
     '<div class="prop-meta">'+a.prop.beds+'bd · '+a.prop.baths+'ba · '+fN(a.prop.sqft)+' sqft · '+a.prop.propertyType+'</div>'+
@@ -643,6 +647,9 @@ function renderResults(a) {
     (a.prop.marketNotes?'<div style="font-size:12px;color:#475569;margin-top:8px;line-height:1.5;">'+a.prop.marketNotes+'</div>':'')+
     rule65Badge(a);
 
+}
+
+function renderAllTabs(a) {
   // Overview
   var cfCls=a.cf>=0?'green':'red', cfVC=a.cf>=0?'cg':'cr';
   document.getElementById('it-ov').innerHTML =
@@ -757,31 +764,40 @@ function rule65Badge(a) {
 }
 
 // ── Price override ────────────────────────────────────────────────────────────
+var overridePrice = null; // tracks current override so re-renders don't reset it
+
 function recalcPrice() {
   if (!curA) return;
-  var newPrice = parseInt(document.getElementById('price-override').value);
-  if (!newPrice || newPrice < 1) return;
+  var input = document.getElementById('price-override');
+  if (!input) return;
+  var newPrice = parseInt(input.value);
+  if (!newPrice || newPrice < 1) { alert('Please enter a valid price'); return; }
 
-  // Update the price in the current analysis object
-  curA.prop.price = newPrice;
+  overridePrice = newPrice;         // remember so renderResults restores it
+  curA.prop.price = newPrice;       // mutate price on prop
 
-  // Re-run full financial analysis with new price
+  // Full re-analysis with new price
   var updated = analyze(curA.prop, curA.inp);
   updated.id = curA.id;
   updated.savedAt = curA.savedAt;
   curA = updated;
 
-  // Save updated analysis
+  // Save to IndexedDB
   dbPut(curA);
 
-  // Re-render everything
-  renderResults(curA);
+  // Re-render all tabs
+  renderAllTabs(curA);
 
-  // Flash confirmation on the price
+  // Restore the override value in the input (renderResults resets it)
+  var inp2 = document.getElementById('price-override');
+  if (inp2) inp2.value = newPrice;
+
+  // Flash the displayed price green
   var priceEl = document.getElementById('disp-price');
   if (priceEl) {
     priceEl.style.color = '#34d399';
-    setTimeout(function(){ priceEl.style.color = ''; }, 1000);
+    priceEl.textContent = fD(newPrice);
+    setTimeout(function(){ priceEl.style.color = ''; }, 1200);
   }
 }
 
