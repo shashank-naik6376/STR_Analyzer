@@ -330,7 +330,27 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
       <div class="empty-s">Search for a property to see your STR cash flow, depreciation, and 5-year model.</div>
     </div>
     <div id="res-content" class="hidden">
-      <div id="prop-card" class="prop"></div>
+      <div id="prop-card" class="prop">
+        <div id="pc-addr" class="prop-addr"></div>
+        <div id="pc-meta" class="prop-meta"></div>
+        <div id="pc-price" class="prop-price"></div>
+        <div class="prop-sub">Listing price</div>
+        <div style="margin-top:12px;">
+          <div class="override-lbl">Adjust Price &amp; Recalculate</div>
+          <div class="price-override">
+            <input type="number" id="price-override" placeholder="Enter price" min="1" step="1000" oninput="this.dataset.touched='1'"/>
+            <button type="button" onclick="recalcPrice()">↻ Recalc</button>
+          </div>
+        </div>
+        <div class="prop-stats">
+          <div><div class="ps-v" id="pc-mo"></div><div class="ps-l">Mortgage</div></div>
+          <div id="pc-occ"></div>
+          <div id="pc-nightly"></div>
+        </div>
+        <div id="pc-market" class="badge"></div>
+        <div id="pc-notes" style="font-size:12px;color:#475569;margin-top:8px;line-height:1.5;"></div>
+        <div id="pc-rule"></div>
+      </div>
       <div class="itabs">
         <button type="button" class="on" onclick="showIT('ov')">📊 Overview</button>
         <button type="button" onclick="showIT('cf')">💰 Cash Flow</button>
@@ -620,34 +640,34 @@ function li(lbl, val, vc) { return '<div class="li"><div class="li-l">'+lbl+'</d
 function liT(lbl, val, vc) { return '<div class="li tot"><div class="li-l">'+lbl+'</div><div class="li-v '+(vc||'')+'">'+val+'</div></div>'; }
 
 function renderResults(a) {
-  overridePrice = null; // fresh analysis resets override
   document.getElementById('res-empty').classList.add('hidden');
   document.getElementById('res-content').classList.remove('hidden');
+  // Reset override input for fresh analysis
+  var inp = document.getElementById('price-override');
+  if (inp) { inp.value = ''; inp.dataset.touched = ''; }
   renderPropCard(a);
   renderAllTabs(a);
-  showIT('ov'); // reset to overview on fresh load
+  showIT('ov');
 }
 
 function renderPropCard(a) {
-  document.getElementById('prop-card').innerHTML =
-    '<div class="prop-addr">'+a.prop.address+'</div>'+
-    '<div class="prop-meta">'+a.prop.beds+'bd · '+a.prop.baths+'ba · '+fN(a.prop.sqft)+' sqft · '+a.prop.propertyType+'</div>'+
-    '<div class="prop-price" id="disp-price">'+fD(a.prop.price)+'</div>'+
-    '<div class="prop-sub">Estimated listing price</div>'+
-    '<div class="override-lbl" style="margin-top:12px;">Override Price</div>'+
-    '<div class="price-override">'+
-      '<input type="number" id="price-override" value="'+a.prop.price+'" min="1" step="1000"/>'+
-      '<button onclick="recalcPrice()">↻ Recalculate</button>'+
-    '</div>'+
-    '<div class="prop-stats">'+
-      '<div><div class="ps-v" id="disp-mo">'+fD(a.mo)+'/mo</div><div class="ps-l">Mortgage</div></div>'+
-      '<div><div class="ps-v">'+a.prop.occupancyRate+'%</div><div class="ps-l">Est. Occ.</div></div>'+
-      '<div><div class="ps-v">'+fD(a.prop.avgNightlyRate)+'</div><div class="ps-l">Avg/Night</div></div>'+
-    '</div>'+
-    '<div class="badge">🏖️ '+a.prop.strMarket+'</div>'+
-    (a.prop.marketNotes?'<div style="font-size:12px;color:#475569;margin-top:8px;line-height:1.5;">'+a.prop.marketNotes+'</div>':'')+
-    rule65Badge(a);
+  // Static info — never changes after first render
+  document.getElementById('pc-addr').textContent = a.prop.address;
+  document.getElementById('pc-meta').textContent = a.prop.beds+'bd · '+a.prop.baths+'ba · '+fN(a.prop.sqft)+' sqft · '+a.prop.propertyType;
+  document.getElementById('pc-market').textContent = '🏖️ '+a.prop.strMarket;
+  document.getElementById('pc-notes').textContent = a.prop.marketNotes||'';
+  // Set input default only on first load (when it's empty)
+  var inp = document.getElementById('price-override');
+  if (!inp.dataset.touched) inp.value = a.prop.price;
+  updatePropCardNumbers(a);
+}
 
+function updatePropCardNumbers(a) {
+  document.getElementById('pc-price').textContent = fD(a.prop.price);
+  document.getElementById('pc-mo').textContent = fD(a.mo)+'/mo';
+  document.getElementById('pc-occ').innerHTML = '<div class="ps-v">'+a.prop.occupancyRate+'%</div><div class="ps-l">Est. Occ.</div>';
+  document.getElementById('pc-nightly').innerHTML = '<div class="ps-v">'+fD(a.prop.avgNightlyRate)+'</div><div class="ps-l">Avg/Night</div>';
+  document.getElementById('pc-rule').innerHTML = rule65Badge(a);
 }
 
 function renderAllTabs(a) {
@@ -766,45 +786,27 @@ function rule65Badge(a) {
 
 // ── Price override ────────────────────────────────────────────────────────────
 function recalcPrice() {
-  if (!curA) return;
+  if (!curA) { alert('No analysis loaded'); return; }
+  var inp = document.getElementById('price-override');
+  var val = inp.value.replace(/[^0-9]/g,'');
+  var newPrice = parseInt(val, 10);
+  if (!newPrice || newPrice < 10000) { alert('Enter a valid price (e.g. 450000)'); return; }
 
-  var input = document.getElementById('price-override');
-  if (!input) { alert('Input not found'); return; }
+  // Update price on the stored prop
+  curA.prop.price = newPrice;
 
-  // Strip any non-numeric chars (commas, $, spaces) before parsing
-  var raw = input.value.toString().replace(/[^0-9]/g, '');
-  var newPrice = parseInt(raw, 10);
-
-  if (!newPrice || isNaN(newPrice) || newPrice < 1) {
-    alert('Please enter a valid price (numbers only)');
-    return;
-  }
-
-  // Deep clone the prop so we don't mutate the original reference
-  var newProp = JSON.parse(JSON.stringify(curA.prop));
-  newProp.price = newPrice;
-
-  // Full re-analysis with new price, keeping all original inputs
-  var updated = analyze(newProp, curA.inp);
-  updated.id = curA.id;
-  updated.savedAt = curA.savedAt;
-  curA = updated;
-
-  // Save
+  // Re-run analysis with new price, same inputs
+  var a = analyze(curA.prop, curA.inp);
+  a.id = curA.id;
+  a.savedAt = curA.savedAt;
+  curA = a;
   dbPut(curA);
 
-  // Render ONLY the tabs — do NOT touch the prop card or the input
+  // Update prop card numbers (price, mortgage, rule badge) WITHOUT touching the input
+  updatePropCardNumbers(curA);
+
+  // Update all 4 data tabs
   renderAllTabs(curA);
-
-  // Manually update the displayed price and mortgage in prop card
-  var dp = document.getElementById('disp-price');
-  var dm = document.getElementById('disp-mo');
-  if (dp) { dp.textContent = fD(newPrice); dp.style.color='#34d399'; setTimeout(function(){dp.style.color='';},1200); }
-  if (dm) dm.textContent = fD(curA.mo)+'/mo';
-
-  // Update the 6.5% badge in place
-  var badge = document.querySelector('.rule-badge');
-  if (badge) badge.outerHTML = rule65Badge(curA);
 }
 
 // ── Saved tab ─────────────────────────────────────────────────────────────────
