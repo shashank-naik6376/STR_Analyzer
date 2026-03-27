@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f8fafb">
+<link rel="manifest" href="/manifest.json">
+<title>STR Analyzer</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8fafb;--bg2:#ffffff;--bg3:#f1f5f9;--bg4:#e2e8f0;
+  --tx:#1e293b;--tx2:#475569;--tx3:#94a3b8;
+  --ac:#3b82f6;--ac2:#2563eb;--ac3:#1d4ed8;--ac-soft:rgba(59,130,246,.08);
+  --gn:#16a34a;--gn-soft:rgba(22,163,74,.08);
+  --rd:#dc2626;--rd-soft:rgba(220,38,38,.08);
+  --yl:#d97706;--yl-soft:rgba(217,119,6,.08);
+  --purple:#7c3aed;--purple-soft:rgba(124,58,237,.08);
+  --bdr:#e2e8f0;
+  --shadow:0 1px 3px rgba(0,0,0,.04),0 1px 2px rgba(0,0,0,.03);
+  --shadow-md:0 4px 6px rgba(0,0,0,.04),0 2px 4px rgba(0,0,0,.03);
+  --r:14px;--r2:10px;--r3:22px;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
+  --mono:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+}
+html,body{
+  font-family:var(--font);background:var(--bg);color:var(--tx);
+  min-height:100vh;min-height:100dvh;overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body{display:flex;flex-direction:column;height:100vh;height:100dvh}
+
+/* Scrollable main area */
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:16px 16px 24px}
+
+/* Page sections */
+.page{display:none}
+.page.active{display:block}
+
+/* Bottom nav */
+.bnav{
+display:flex;background:var(–bg2);border-top:1px solid var(–bdr);
+padding:6px 0 env(safe-area-inset-bottom,8px);flex-shrink:0;
+box-shadow:0 -1px 4px rgba(0,0,0,.03);
+}
+.bnav button{
+flex:1;background:none;border:none;color:var(–tx3);
+display:flex;flex-direction:column;align-items:center;gap:2px;
+font-size:10px;font-family:var(–font);padding:6px 0;
+-webkit-tap-highlight-color:transparent;cursor:pointer;
+transition:color .2s;
+}
+.bnav button.active{color:var(–ac)}
+.bnav button .ico{font-size:20px;line-height:1}
+
+/* Cards */
+.card{
+background:var(–bg2);border:1px solid var(–bdr);border-radius:var(–r);
+padding:16px;margin-bottom:12px;box-shadow:var(–shadow);
+}
+.card-title{font-size:12px;font-weight:700;color:var(–tx3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
+
+/* Inputs */
+.inp-wrap{margin-bottom:14px}
+.inp-wrap label{display:block;font-size:12px;color:var(–tx2);margin-bottom:5px;font-weight:600}
+.inp{
+width:100%;background:var(–bg3);border:1px solid var(–bdr);border-radius:var(–r2);
+color:var(–tx);font-size:15px;font-family:var(–font);padding:10px 12px;
+outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.inp:focus{border-color:var(–ac);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.inp::placeholder{color:var(–tx3)}
+
+/* Buttons */
+.btn{
+display:inline-flex;align-items:center;justify-content:center;gap:6px;
+background:var(–ac);color:#fff;font-weight:600;font-size:14px;
+border:none;border-radius:var(–r2);padding:12px 20px;cursor:pointer;
+font-family:var(–font);width:100%;transition:all .2s;
+-webkit-tap-highlight-color:transparent;box-shadow:0 1px 2px rgba(59,130,246,.2);
+}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;pointer-events:none}
+.btn-sm{padding:8px 14px;font-size:13px;width:auto}
+.btn-ghost{background:transparent;color:var(–ac);border:1px solid var(–ac);box-shadow:none}
+
+/* Segment control */
+.seg{display:flex;background:var(–bg3);border-radius:var(–r2);overflow:hidden;margin-bottom:14px;border:1px solid var(–bdr)}
+.seg button{
+flex:1;background:none;border:none;color:var(–tx3);font-size:13px;
+font-family:var(–font);font-weight:500;padding:9px 6px;cursor:pointer;
+transition:all .2s;-webkit-tap-highlight-color:transparent;
+}
+.seg button.active{background:var(–ac);color:#fff;font-weight:600}
+
+/* Slider */
+.slider-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.slider-row label{font-size:12px;color:var(–tx2);min-width:90px;font-weight:500}
+.slider-row input[type=range]{flex:1;accent-color:var(–ac);height:4px}
+.slider-row .sv{font-size:14px;color:var(–ac2);font-weight:700;min-width:44px;text-align:right;font-family:var(–mono)}
+
+/* Toggle */
+.tog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.tog-row span{font-size:13px;color:var(–tx2)}
+.tog{
+width:44px;height:26px;background:var(–bg4);border-radius:13px;
+position:relative;cursor:pointer;transition:background .2s;border:none;
+-webkit-tap-highlight-color:transparent;
+}
+.tog.on{background:var(–ac)}
+.tog::after{
+content:’’;position:absolute;top:3px;left:3px;width:20px;height:20px;
+background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15);
+}
+.tog.on::after{transform:translateX(18px)}
+
+/* Badges */
+.badge{
+display:inline-flex;align-items:center;gap:4px;
+font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;
+}
+.badge-pass{background:var(–gn-soft);color:var(–gn)}
+.badge-fail{background:var(–rd-soft);color:var(–rd)}
+
+/* Metric grid */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.mcard{background:var(–bg2);border:1px solid var(–bdr);border-radius:var(–r2);padding:14px;text-align:center;box-shadow:var(–shadow)}
+.mcard .ml{font-size:10px;color:var(–tx3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+.mcard .mv{font-size:18px;font-weight:800;color:var(–tx);font-family:var(–mono)}
+.mcard .mv.pos{color:var(–gn)}
+.mcard .mv.neg{color:var(–rd)}
+.mcard .mv.neut{color:var(–yl)}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+.tbl th{text-align:left;color:var(–tx3);font-weight:600;padding:8px 6px;border-bottom:2px solid var(–bdr);font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+.tbl td{padding:9px 6px;border-bottom:1px solid var(–bg3);color:var(–tx2)}
+.tbl td:last-child{text-align:right;font-family:var(–mono);color:var(–tx);font-weight:600}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .row-total td{font-weight:700;color:var(–ac2);border-top:2px solid var(–bdr)}
+
+/* Inner tabs (results sub-tabs) */
+.itabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.itabs button{
+background:var(–bg2);border:1px solid var(–bdr);border-radius:20px;
+color:var(–tx3);font-size:12px;font-weight:600;padding:7px 16px;
+white-space:nowrap;cursor:pointer;font-family:var(–font);
+transition:all .2s;-webkit-tap-highlight-color:transparent;
+}
+.itabs button.active{background:var(–ac);color:#fff;border-color:var(–ac);box-shadow:0 1px 3px rgba(59,130,246,.2)}
+
+.hidden{display:none!important}
+
+/* Saved list */
+.scard{
+background:var(–bg2);border:1px solid var(–bdr);border-radius:var(–r);
+padding:14px;margin-bottom:10px;cursor:pointer;
+transition:border-color .2s,box-shadow .2s;position:relative;box-shadow:var(–shadow);
+}
+.scard:active{border-color:var(–ac);box-shadow:var(–shadow-md)}
+.scard .sa{font-size:15px;font-weight:700;color:var(–tx);margin-bottom:6px;padding-right:30px}
+.scard .sm{font-size:12px;color:var(–tx3);margin-bottom:8px}
+.scard .schips{display:flex;flex-wrap:wrap;gap:6px}
+.scard .schip{font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px}
+.scard .del{
+position:absolute;top:12px;right:12px;background:none;border:none;
+font-size:18px;color:var(–tx3);cursor:pointer;padding:4px;
+-webkit-tap-highlight-color:transparent;
+}
+.scard .del:hover{color:var(–rd)}
+
+/* Loading */
+.ldg{text-align:center;padding:40px 0}
+.ldg .spinner{
+width:32px;height:32px;border:3px solid var(–bg4);border-top-color:var(–ac);
+border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ldg p{color:var(–tx2);font-size:14px}
+
+/* Prop card header */
+.pc{margin-bottom:16px}
+.pc .pc-addr{font-size:17px;font-weight:700;color:var(–tx);margin-bottom:4px}
+.pc .pc-det{font-size:13px;color:var(–tx3);margin-bottom:10px}
+.pc .pc-price-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.pc .pc-price{font-size:24px;font-weight:800;color:var(–ac2);font-family:var(–mono)}
+.pc .pc-mo{font-size:12px;color:var(–tx3)}
+
+/* KPI hero strip */
+.kpi-strip{
+display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+margin:14px 0;padding:14px 0;border-top:1px solid var(–bdr);border-bottom:1px solid var(–bdr);
+}
+.kpi-strip .kpi{text-align:center}
+.kpi-strip .kpi .kv{font-size:20px;font-weight:800;font-family:var(–mono);line-height:1.2}
+.kpi-strip .kpi .kl{font-size:10px;font-weight:600;color:var(–tx3);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+.kpi-strip .kpi .kv.k-pos{color:var(–gn)}
+.kpi-strip .kpi .kv.k-neg{color:var(–rd)}
+.kpi-strip .kpi .kv.k-ac{color:var(–ac2)}
+.kpi-strip .kpi .kv.k-yl{color:var(–yl)}
+
+/* Flash green on recalc */
+.btn-flash{background:var(–gn)!important;transition:background .1s}
+
+/* 5yr table */
+.yr-tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:12px}
+.yr-tbl table{min-width:520px}
+
+/* Status bar */
+.status{
+position:fixed;top:0;left:0;right:0;
+background:var(–rd);color:#fff;font-size:13px;font-weight:600;
+text-align:center;padding:8px 16px;z-index:100;
+transform:translateY(-100%);transition:transform .3s;
+box-shadow:0 2px 8px rgba(220,38,38,.2);
+}
+.status.show{transform:translateY(0)}
+
+/* Empty state */
+.empty{text-align:center;padding:60px 20px;color:var(–tx3)}
+.empty .ei{font-size:48px;margin-bottom:12px}
+.empty p{font-size:14px;line-height:1.5}
+
+/* Header */
+.hdr{
+padding:12px 16px env(safe-area-inset-top,0);
+background:var(–bg2);border-bottom:1px solid var(–bdr);flex-shrink:0;
+display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.03);
+}
+.hdr .logo{font-size:18px;font-weight:800;color:var(–ac2);letter-spacing:-.5px}
+.hdr .logo span{color:var(–tx)}
+.hdr .sub{font-size:11px;color:var(–tx3);margin-left:auto}
+</style>
+
+</head>
+<body>
+
+<!-- Status bar for errors -->
+
+<div class="status" id="status"></div>
+
+<!-- Header -->
+
+<div class="hdr">
+  <div class="logo">STR<span>Analyzer</span></div>
+  <div class="sub">Investment Analysis</div>
+</div>
+
+<!-- Main scrollable area -->
+
+<div class="main">
+
+  <!-- TAB 1: SEARCH -->
+
+  <div class="page active" id="pg-search">
+    <div class="card">
+      <div class="card-title">Property Lookup</div>
+      <div class="inp-wrap">
+        <label>Property Address</label>
+        <input class="inp" type="text" id="addr" placeholder="123 Main St, City, ST 12345" autocomplete="off" autocorrect="off">
+      </div>
+      <button type="button" class="btn" id="btn-analyze" onclick="doAnalyze()">
+        🔍 Analyze Property
+      </button>
+    </div>
+
+```
+<!-- Financing -->
+<div class="card">
+  <div class="card-title">Financing</div>
+  <div class="seg" id="seg-loan">
+    <button type="button" class="active" onclick="setLoan('conv',this)">Conventional</button>
+    <button type="button" onclick="setLoan('dscr',this)">DSCR</button>
+    <button type="button" onclick="setLoan('cash',this)">Cash</button>
+  </div>
+  <div id="loan-fields">
+    <div class="slider-row">
+      <label>Down Payment</label>
+      <input type="range" id="sl-dp" min="10" max="50" value="20" oninput="updSlider(this,'sv-dp','%')">
+      <span class="sv" id="sv-dp">20%</span>
+    </div>
+    <div class="slider-row">
+      <label>Interest Rate</label>
+      <input type="range" id="sl-rate" min="4" max="10" value="7.0" step="0.125" oninput="updSlider(this,'sv-rate','%')">
+      <span class="sv" id="sv-rate">7.0%</span>
+    </div>
+    <div class="slider-row">
+      <label>Loan Term</label>
+      <input type="range" id="sl-term" min="15" max="30" value="30" step="5" oninput="updSlider(this,'sv-term',' yr')">
+      <span class="sv" id="sv-term">30 yr</span>
+    </div>
+  </div>
+</div>
+
+<!-- STR Operations -->
+<div class="card">
+  <div class="card-title">STR Operations</div>
+  <div class="slider-row">
+    <label>Occupancy</label>
+    <input type="range" id="sl-occ" min="30" max="90" value="65" oninput="updSlider(this,'sv-occ','%')">
+    <span class="sv" id="sv-occ">65%</span>
+  </div>
+  <div class="slider-row">
+    <label>Cleaning Fee</label>
+    <input type="range" id="sl-clean" min="50" max="400" value="150" step="10" oninput="updSlider(this,'sv-clean','','$')">
+    <span class="sv" id="sv-clean">$150</span>
+  </div>
+  <div class="slider-row">
+    <label>Cleans/Month</label>
+    <input type="range" id="sl-cleans" min="2" max="20" value="8" oninput="updSlider(this,'sv-cleans','')">
+    <span class="sv" id="sv-cleans">8</span>
+  </div>
+  <div class="slider-row">
+    <label>Utilities</label>
+    <input type="range" id="sl-util" min="100" max="600" value="250" step="10" oninput="updSlider(this,'sv-util','','$')">
+    <span class="sv" id="sv-util">$250</span>
+  </div>
+  <div class="slider-row">
+    <label>Supplies</label>
+    <input type="range" id="sl-sup" min="50" max="400" value="150" step="10" oninput="updSlider(this,'sv-sup','','$')">
+    <span class="sv" id="sv-sup">$150</span>
+  </div>
+  <div class="slider-row">
+    <label>Furnishing</label>
+    <input type="range" id="sl-furn" min="5000" max="60000" value="25000" step="1000" oninput="updSlider(this,'sv-furn','','$')">
+    <span class="sv" id="sv-furn">$25000</span>
+  </div>
+  <div class="tog-row">
+    <span>Self-Managed</span>
+    <button type="button" class="tog on" id="tog-self" onclick="toggleTog(this)"></button>
+  </div>
+  <div class="slider-row" id="mgmt-row" style="display:none">
+    <label>Mgmt Fee</label>
+    <input type="range" id="sl-mgmt" min="10" max="35" value="20" oninput="updSlider(this,'sv-mgmt','%')">
+    <span class="sv" id="sv-mgmt">20%</span>
+  </div>
+</div>
+
+<!-- Annual Operating Costs -->
+<div class="card">
+  <div class="card-title">Annual Operating Costs</div>
+  <div class="inp-wrap">
+    <label>Property Tax ($/yr)</label>
+    <input class="inp" type="text" id="inp-proptax" placeholder="Auto from API" inputmode="numeric">
+  </div>
+  <div class="inp-wrap">
+    <label>HOA ($/mo)</label>
+    <input class="inp" type="text" id="inp-hoa" placeholder="0" inputmode="numeric">
+  </div>
+  <div class="inp-wrap">
+    <label>Lodging / Occupancy Tax (%)</label>
+    <input class="inp" type="text" id="inp-lodgtax" placeholder="0" inputmode="numeric" value="0">
+  </div>
+  <div class="inp-wrap">
+    <label>Insurance ($/yr)</label>
+    <input class="inp" type="text" id="inp-insurance" placeholder="Auto from API" inputmode="numeric">
+  </div>
+  <div class="slider-row">
+    <label>Maintenance</label>
+    <input type="range" id="sl-maint" min="0.5" max="3" value="1" step="0.25" oninput="updSlider(this,'sv-maint','%')">
+    <span class="sv" id="sv-maint">1%</span>
+  </div>
+  <div class="slider-row">
+    <label>CapEx Reserve</label>
+    <input type="range" id="sl-capex" min="0" max="2" value="0.5" step="0.25" oninput="updSlider(this,'sv-capex','%')">
+    <span class="sv" id="sv-capex">0.5%</span>
+  </div>
+</div>
+
+<!-- Tax & Depreciation -->
+<div class="card">
+  <div class="card-title">Tax & Depreciation</div>
+  <div class="slider-row">
+    <label>Tax Rate</label>
+    <input type="range" id="sl-tax" min="15" max="50" value="35" oninput="updSlider(this,'sv-tax','%')">
+    <span class="sv" id="sv-tax">35%</span>
+  </div>
+  <div class="tog-row">
+    <span>Cost Segregation</span>
+    <button type="button" class="tog" id="tog-costseg" onclick="toggleTog(this)"></button>
+  </div>
+  <div id="costseg-fields" style="display:none">
+    <div class="slider-row">
+      <label>Bonus Depr %</label>
+      <input type="range" id="sl-bonus" min="0" max="100" value="60" step="5" oninput="updSlider(this,'sv-bonus','%')">
+      <span class="sv" id="sv-bonus">60%</span>
+    </div>
+  </div>
+</div>
+
+<!-- 5-Year Assumptions -->
+<div class="card">
+  <div class="card-title">5-Year Assumptions</div>
+  <div class="slider-row">
+    <label>Rev Growth</label>
+    <input type="range" id="sl-revg" min="0" max="10" value="3" oninput="updSlider(this,'sv-revg','%')">
+    <span class="sv" id="sv-revg">3%</span>
+  </div>
+  <div class="slider-row">
+    <label>Exp Growth</label>
+    <input type="range" id="sl-expg" min="0" max="8" value="2" oninput="updSlider(this,'sv-expg','%')">
+    <span class="sv" id="sv-expg">2%</span>
+  </div>
+  <div class="slider-row">
+    <label>Appreciation</label>
+    <input type="range" id="sl-appr" min="0" max="8" value="3" oninput="updSlider(this,'sv-appr','%')">
+    <span class="sv" id="sv-appr">3%</span>
+  </div>
+  <div class="slider-row">
+    <label>Exit Cap Rate</label>
+    <input type="range" id="sl-cap" min="4" max="10" value="6" step="0.25" oninput="updSlider(this,'sv-cap','%')">
+    <span class="sv" id="sv-cap">6%</span>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- TAB 2: RESULTS -->
+
+  <div class="page" id="pg-results">
+    <div id="res-empty" class="empty">
+      <div class="ei">📊</div>
+      <p>No analysis yet.<br>Search for a property to see results.</p>
+    </div>
+    <div id="res-loading" class="ldg hidden">
+      <div class="spinner"></div>
+      <p id="ldg-txt">Analyzing property…</p>
+    </div>
+    <div id="res-content" class="hidden">
+      <!-- Property card (persistent DOM) -->
+      <div class="pc card">
+        <div class="pc-addr" id="pc-addr">—</div>
+        <div class="pc-det" id="pc-det">—</div>
+        <div class="pc-price-row">
+          <span class="pc-price" id="pc-price">$0</span>
+          <span class="pc-mo" id="pc-mo">$0/mo est. mortgage</span>
+        </div>
+        <div id="pc-rule"></div>
+
+```
+    <!-- KPI Hero Strip -->
+    <div class="kpi-strip">
+      <div class="kpi"><div class="kv k-ac" id="kpi-rev">—</div><div class="kl">Projected Rev</div></div>
+      <div class="kpi"><div class="kv k-yl" id="kpi-adr">—</div><div class="kl">ADR</div></div>
+      <div class="kpi"><div class="kv" id="kpi-occ" style="color:var(--tx)">—</div><div class="kl">Occupancy</div></div>
+    </div>
+    <div class="kpi-strip" style="border-top:none;padding-top:0;margin-top:0">
+      <div class="kpi"><div class="kv" id="kpi-noi">—</div><div class="kl">Annual NOI</div></div>
+      <div class="kpi"><div class="kv" id="kpi-cf">—</div><div class="kl">Annual CF</div></div>
+      <div class="kpi"><div class="kv" id="kpi-coc">—</div><div class="kl">CoC ROI</div></div>
+    </div>
+
+    <!-- Override row -->
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input class="inp" type="text" id="price-override" placeholder="New price" inputmode="numeric" style="width:110px;flex-shrink:0;font-size:14px;padding:8px 10px">
+      <input class="inp" type="text" id="rate-override" placeholder="New $/night" inputmode="numeric" style="width:110px;flex-shrink:0;font-size:14px;padding:8px 10px">
+      <button type="button" class="btn btn-sm" id="btn-recalc" onclick="recalcOverrides()">↻ Recalc</button>
+    </div>
+  </div>
+
+  <!-- Inner tabs -->
+  <div class="itabs">
+    <button type="button" class="active" onclick="showIT('ov')">Overview</button>
+    <button type="button" onclick="showIT('cf')">Cash Flow</button>
+    <button type="button" onclick="showIT('tx')">Tax</button>
+    <button type="button" onclick="showIT('yr')">5-Year</button>
+  </div>
+
+  <!-- Inner tab: Overview -->
+  <div id="it-ov"></div>
+
+  <!-- Inner tab: Cash Flow -->
+  <div id="it-cf" class="hidden" style="display:none"></div>
+
+  <!-- Inner tab: Tax -->
+  <div id="it-tx" class="hidden" style="display:none"></div>
+
+  <!-- Inner tab: 5-Year -->
+  <div id="it-yr" class="hidden" style="display:none"></div>
+</div>
+```
+
+  </div>
+
+  <!-- TAB 3: SAVED -->
+
+  <div class="page" id="pg-saved">
+    <div id="saved-list"></div>
+    <div id="saved-empty" class="empty">
+      <div class="ei">💾</div>
+      <p>No saved analyses yet.<br>Analyze a property to get started.</p>
+    </div>
+  </div>
+
+  <!-- TAB 4: SETTINGS -->
+
+  <div class="page" id="pg-settings">
+    <div class="card">
+      <div class="card-title">API Configuration</div>
+      <p style="font-size:13px;color:var(--tx2);line-height:1.6">
+        Your API key is stored securely as a Vercel environment variable. No API keys are sent to or stored on your device.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-title">About</div>
+      <p style="font-size:13px;color:var(--tx2);line-height:1.6">
+        <strong style="color:var(--tx)">STR Analyzer</strong> evaluates short-term rental investment properties with detailed financial modeling including cash flow, depreciation, tax savings, and 5-year projections.<br><br>
+        Each lookup uses the Claude API and costs approximately <strong style="color:var(--ac2)">$0.01</strong>.<br><br>
+        Model: <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--tx)">claude-opus-4-5</code>
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-title">Investor Profile</div>
+      <p style="font-size:13px;color:var(--tx2);line-height:1.6">
+        Calculations assume an <strong style="color:var(--tx)">active STR investor</strong> with material participation (avg stay &lt;7 days). Paper losses from depreciation offset ordinary W-2 income — no passive activity limitation.<br><br>
+        Platforms: Airbnb (60%), VRBO (30%), Direct (10%)
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom nav -->
+
+<nav class="bnav">
+  <button type="button" id="nb-search" class="active" onclick="goTab('search')">
+    <span class="ico">🔍</span><span>Search</span>
+  </button>
+  <button type="button" id="nb-results" onclick="goTab('results')">
+    <span class="ico">📊</span><span>Results</span>
+  </button>
+  <button type="button" id="nb-saved" onclick="goTab('saved')">
+    <span class="ico">💾</span><span>Saved</span>
+  </button>
+  <button type="button" id="nb-settings" onclick="goTab('settings')">
+    <span class="ico">⚙️</span><span>Settings</span>
+  </button>
+</nav>
+
+<script>
+/* ===== GLOBALS ===== */
+var curA = null; // current analysis {prop, inp, res, ts}
+var db = null;
+var DB_NAME = 'STRAnalyzerDB';
+var STORE = 'STRv2';
+
+/* ===== NAV ===== */
+function goTab(name) {
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) {
+    pages[i].classList.remove('active');
+  }
+  document.getElementById('pg-' + name).classList.add('active');
+
+  var btns = document.querySelectorAll('.bnav button');
+  for (var j = 0; j < btns.length; j++) {
+    btns[j].classList.remove('active');
+  }
+  document.getElementById('nb-' + name).classList.add('active');
+
+  if (name === 'saved') loadSaved();
+
+  // Scroll to top
+  document.querySelector('.main').scrollTop = 0;
+}
+
+/* ===== SLIDER / TOGGLE HELPERS ===== */
+function updSlider(el, svId, suffix, prefix) {
+  var v = el.value;
+  document.getElementById(svId).textContent = (prefix || '') + v + (suffix || '');
+}
+
+function toggleTog(el) {
+  el.classList.toggle('on');
+  // Special toggles
+  if (el.id === 'tog-self') {
+    document.getElementById('mgmt-row').style.display = el.classList.contains('on') ? 'none' : '';
+  }
+  if (el.id === 'tog-costseg') {
+    document.getElementById('costseg-fields').style.display = el.classList.contains('on') ? '' : 'none';
+  }
+}
+
+function setLoan(type, btn) {
+  var segs = btn.parentElement.querySelectorAll('button');
+  for (var i = 0; i < segs.length; i++) segs[i].classList.remove('active');
+  btn.classList.add('active');
+  document.getElementById('loan-fields').style.display = type === 'cash' ? 'none' : '';
+}
+
+/* ===== GATHER INPUTS ===== */
+function getInputs() {
+  var loanBtns = document.querySelectorAll('#seg-loan button');
+  var loanType = 'conv';
+  for (var i = 0; i < loanBtns.length; i++) {
+    if (loanBtns[i].classList.contains('active')) {
+      loanType = ['conv','dscr','cash'][i];
+    }
+  }
+  return {
+    loanType: loanType,
+    downPct: parseFloat(document.getElementById('sl-dp').value) / 100,
+    rate: parseFloat(document.getElementById('sl-rate').value) / 100,
+    termYrs: parseInt(document.getElementById('sl-term').value),
+    occupancy: parseFloat(document.getElementById('sl-occ').value) / 100,
+    cleanFee: parseFloat(document.getElementById('sl-clean').value),
+    cleansPerMonth: parseInt(document.getElementById('sl-cleans').value),
+    utilities: parseFloat(document.getElementById('sl-util').value),
+    supplies: parseFloat(document.getElementById('sl-sup').value),
+    furnishing: parseFloat(document.getElementById('sl-furn').value),
+    selfManaged: document.getElementById('tog-self').classList.contains('on'),
+    mgmtPct: parseFloat(document.getElementById('sl-mgmt').value) / 100,
+    // Annual operating costs (empty string = use API/default)
+    propTaxOverride: document.getElementById('inp-proptax').value.replace(/[^0-9.]/g, ''),
+    hoaOverride: document.getElementById('inp-hoa').value.replace(/[^0-9.]/g, ''),
+    lodgingTaxPct: parseFloat(document.getElementById('inp-lodgtax').value.replace(/[^0-9.]/g, '') || '0') / 100,
+    insuranceOverride: document.getElementById('inp-insurance').value.replace(/[^0-9.]/g, ''),
+    maintPct: parseFloat(document.getElementById('sl-maint').value) / 100,
+    capexPct: parseFloat(document.getElementById('sl-capex').value) / 100,
+    // Tax & depreciation
+    taxRate: parseFloat(document.getElementById('sl-tax').value) / 100,
+    costSeg: document.getElementById('tog-costseg').classList.contains('on'),
+    bonusPct: parseFloat(document.getElementById('sl-bonus').value) / 100,
+    revGrowth: parseFloat(document.getElementById('sl-revg').value) / 100,
+    expGrowth: parseFloat(document.getElementById('sl-expg').value) / 100,
+    apprRate: parseFloat(document.getElementById('sl-appr').value) / 100,
+    exitCap: parseFloat(document.getElementById('sl-cap').value) / 100
+  };
+}
+
+/* ===== FINANCIAL ENGINE ===== */
+function analyze(prop, inp) {
+  var price = prop.price;
+
+  // Revenue: derived from nightly rate × occupancy × 30
+  var avgNightlyRate = prop.avgNightlyRate || 200;
+  var monthlyRev = avgNightlyRate * inp.occupancy * 30;
+  // Keep API benchmark for reference
+  var apiBenchmarkRev = prop.strGrossRevenue || 0;
+
+  // Mortgage
+  var downPay = price * inp.downPct;
+  var loanAmt = inp.loanType === 'cash' ? 0 : price - downPay;
+  var monthlyMortgage = 0;
+  if (loanAmt > 0) {
+    var mr = inp.rate / 12;
+    var n = inp.termYrs * 12;
+    monthlyMortgage = loanAmt * (mr * Math.pow(1 + mr, n)) / (Math.pow(1 + mr, n) - 1);
+  }
+
+  // Platform fees: Airbnb 60% @ 3%, VRBO 30% @ 5%, Direct 10% @ 0%
+  var platformFees = monthlyRev * (0.60 * 0.03 + 0.30 * 0.05 + 0.10 * 0);
+
+  // Lodging / occupancy tax
+  var lodgingTaxMo = monthlyRev * inp.lodgingTaxPct;
+
+  // Cleaning
+  var cleaningCost = inp.cleanFee * inp.cleansPerMonth;
+
+  // Mgmt fee
+  var mgmtFee = inp.selfManaged ? 0 : monthlyRev * inp.mgmtPct;
+
+  // Annual operating costs — use user override if provided, else API value, else default from price
+  var propTaxAnnual = inp.propTaxOverride ? parseFloat(inp.propTaxOverride) : (prop.propertyTax || price * 0.012);
+  var propTaxMo = propTaxAnnual / 12;
+  var insuranceAnnual = inp.insuranceOverride ? parseFloat(inp.insuranceOverride) : (prop.insurance || price * 0.005);
+  var insuranceMo = insuranceAnnual / 12;
+  var hoaMo = inp.hoaOverride ? parseFloat(inp.hoaOverride) : (prop.hoa || 0);
+  var maintenanceMo = (price * inp.maintPct) / 12;
+  var capexMo = (price * inp.capexPct) / 12;
+  // Vacancy is already reflected in revenue (rate × occupancy × 30)
+  var vacancyCost = 0;
+
+  // Monthly expenses (cleaning excluded — ADR already includes cleaning fee)
+  var opEx = platformFees + lodgingTaxMo + propTaxMo + insuranceMo + hoaMo +
+             mgmtFee + inp.utilities + inp.supplies + maintenanceMo + capexMo;
+  var totalEx = opEx + monthlyMortgage;
+
+  var monthlyNOI = monthlyRev - opEx;
+  var monthlyCF = monthlyRev - totalEx;
+  var annualCF = monthlyCF * 12;
+  var annualNOI = monthlyNOI * 12;
+
+  // Depreciation
+  var buildingVal = price * 0.80;
+  var landVal = price * 0.20;
+  var straightLineDepr = buildingVal / 27.5;
+
+  // Cost segregation
+  var y1Depr = straightLineDepr;
+  var deprSchedule = [];
+  if (inp.costSeg) {
+    var fiveYr = buildingVal * 0.15 * inp.bonusPct;
+    var sevenYr = buildingVal * 0.10 * inp.bonusPct;
+    var fifteenYr = buildingVal * 0.15 * inp.bonusPct;
+    var residentialDepr = buildingVal * 0.60 / 27.5;
+    y1Depr = fiveYr + sevenYr + fifteenYr + residentialDepr;
+    // Simple schedule: Y1 is big, Y2+ is just residential portion
+    deprSchedule.push(y1Depr);
+    for (var d = 1; d < 5; d++) {
+      deprSchedule.push(residentialDepr + (buildingVal * 0.15 * (1 - inp.bonusPct)) / 5
+        + (buildingVal * 0.10 * (1 - inp.bonusPct)) / 7
+        + (buildingVal * 0.15 * (1 - inp.bonusPct)) / 15);
+    }
+  } else {
+    for (var dd = 0; dd < 5; dd++) deprSchedule.push(straightLineDepr);
+  }
+
+  var y1TaxSavings = y1Depr * inp.taxRate;
+
+  // Cash invested
+  var closingCosts = price * 0.03;
+  var totalCashIn = (inp.loanType === 'cash' ? price : downPay) + closingCosts + inp.furnishing;
+
+  // CoC ROI
+  var cocROI = totalCashIn > 0 ? annualCF / totalCashIn : 0;
+  var taxAdjROI = totalCashIn > 0 ? (annualCF + y1TaxSavings) / totalCashIn : 0;
+
+  // 6.5% Rule (sniff test): Gross Annual Revenue >= Listing Price / 6.5
+  // Gross = nightly rate × occupancy × 365 (before any deductions)
+  var grossAnnualRev = avgNightlyRate * inp.occupancy * 365;
+  var ruleTarget = price / 6.5;
+  var rulePass = grossAnnualRev >= ruleTarget;
+
+  // 5-Year Model
+  var fiveYear = [];
+  var cumCF = 0, cumTax = 0;
+  var curRev = monthlyRev * 12;
+  var curOpEx = opEx * 12;
+  var curMort = monthlyMortgage * 12;
+  var propValue = price;
+  var loanBal = loanAmt;
+
+  for (var yr = 1; yr <= 5; yr++) {
+    if (yr > 1) {
+      curRev *= (1 + inp.revGrowth);
+      curOpEx *= (1 + inp.expGrowth);
+      propValue *= (1 + inp.apprRate);
+    }
+    var yrNOI = curRev - curOpEx;
+    var yrCF = yrNOI - curMort;
+    var yrDepr = deprSchedule[yr - 1] || straightLineDepr;
+    var yrTaxable = yrNOI - yrDepr;
+    var yrTaxSav = yrTaxable < 0 ? Math.abs(yrTaxable) * inp.taxRate : 0;
+
+    cumCF += yrCF;
+    cumTax += yrTaxSav;
+
+    // Amortize loan balance (simplified)
+    if (loanAmt > 0) {
+      var intPaid = loanBal * inp.rate;
+      var princPaid = curMort - intPaid;
+      loanBal = Math.max(0, loanBal - princPaid);
+    }
+
+    fiveYear.push({
+      year: yr,
+      revenue: curRev,
+      opex: curOpEx,
+      noi: yrNOI,
+      mortgage: curMort,
+      cashFlow: yrCF,
+      depreciation: yrDepr,
+      taxSavings: yrTaxSav,
+      cumCF: cumCF,
+      cumTax: cumTax,
+      propValue: propValue,
+      loanBalance: loanBal
+    });
+  }
+
+  // Exit analysis (Year 5)
+  var exitValueCap = annualNOI > 0 ? (fiveYear[4].noi / inp.exitCap) : propValue;
+  var exitValueAppr = propValue * Math.pow(1 + inp.apprRate, 5);
+  var exitValue = Math.max(exitValueCap, exitValueAppr);
+  var sellingCosts = exitValue * 0.06;
+  var exitEquity = exitValue - fiveYear[4].loanBalance - sellingCosts;
+  var totalReturn = cumCF + cumTax + exitEquity - totalCashIn;
+  var totalROI = totalCashIn > 0 ? totalReturn / totalCashIn : 0;
+
+  return {
+    prop: prop,
+    inp: inp,
+    // Revenue source
+    avgNightlyRate: avgNightlyRate,
+    apiBenchmarkRev: apiBenchmarkRev,
+    // Monthly
+    monthlyRev: monthlyRev,
+    monthlyMortgage: monthlyMortgage,
+    platformFees: platformFees,
+    lodgingTaxMo: lodgingTaxMo,
+    cleaningCost: cleaningCost,
+    mgmtFee: mgmtFee,
+    propTaxMo: propTaxMo,
+    insuranceMo: insuranceMo,
+    hoaMo: hoaMo,
+    utilities: inp.utilities,
+    supplies: inp.supplies,
+    maintenanceMo: maintenanceMo,
+    capexMo: capexMo,
+    vacancyCost: vacancyCost,
+    monthlyNOI: monthlyNOI,
+    monthlyCF: monthlyCF,
+    opEx: opEx,
+    totalEx: totalEx,
+    // Annual
+    annualCF: annualCF,
+    annualNOI: annualNOI,
+    // Depreciation
+    y1Depr: y1Depr,
+    straightLineDepr: straightLineDepr,
+    deprSchedule: deprSchedule,
+    y1TaxSavings: y1TaxSavings,
+    // Investment
+    downPay: downPay,
+    loanAmt: loanAmt,
+    closingCosts: closingCosts,
+    totalCashIn: totalCashIn,
+    cocROI: cocROI,
+    taxAdjROI: taxAdjROI,
+    // Rule
+    grossAnnualRev: grossAnnualRev,
+    ruleTarget: ruleTarget,
+    rulePass: rulePass,
+    // 5-Year
+    fiveYear: fiveYear,
+    exitValue: exitValue,
+    exitEquity: exitEquity,
+    totalReturn: totalReturn,
+    totalROI: totalROI,
+    cumCF: cumCF,
+    cumTax: cumTax,
+    // Meta
+    ts: Date.now()
+  };
+}
+
+/* ===== FORMAT HELPERS ===== */
+function $(amt) {
+  if (typeof amt !== 'number' || isNaN(amt)) return '$0';
+  var neg = amt < 0;
+  var v = Math.abs(Math.round(amt));
+  var s = v.toLocaleString('en-US');
+  return (neg ? '-$' : '$') + s;
+}
+function $d(amt) {
+  if (typeof amt !== 'number' || isNaN(amt)) return '$0';
+  var neg = amt < 0;
+  var v = Math.abs(amt).toFixed(0);
+  return (neg ? '-$' : '$') + parseInt(v).toLocaleString('en-US');
+}
+function pct(v) {
+  if (typeof v !== 'number' || isNaN(v)) return '0%';
+  return (v * 100).toFixed(1) + '%';
+}
+function cls(v) { return v >= 0 ? 'pos' : 'neg'; }
+
+/* ===== RENDER ===== */
+function renderPropCard(a) {
+  document.getElementById('pc-addr').textContent = a.prop.address || 'Unknown Address';
+  var det = [];
+  if (a.prop.beds) det.push(a.prop.beds + ' bd');
+  if (a.prop.baths) det.push(a.prop.baths + ' ba');
+  if (a.prop.sqft) det.push(a.prop.sqft.toLocaleString() + ' sqft');
+  if (a.prop.propertyType) det.push(a.prop.propertyType);
+  document.getElementById('pc-det').textContent = det.join(' · ') || '—';
+  document.getElementById('pc-price').textContent = $(a.prop.price);
+  document.getElementById('pc-mo').textContent = $(Math.round(a.monthlyMortgage)) + '/mo est. mortgage';
+
+  // KPI strip — row 1
+  document.getElementById('kpi-rev').textContent = $d(a.monthlyRev * 12) + '/yr';
+  document.getElementById('kpi-adr').textContent = '$' + Math.round(a.avgNightlyRate);
+  document.getElementById('kpi-occ').textContent = (a.inp.occupancy * 100).toFixed(0) + '%';
+
+  // KPI strip — row 2
+  var noiEl = document.getElementById('kpi-noi');
+  noiEl.textContent = $d(a.annualNOI);
+  noiEl.className = 'kv ' + (a.annualNOI >= 0 ? 'k-pos' : 'k-neg');
+
+  var cfEl = document.getElementById('kpi-cf');
+  cfEl.textContent = $d(a.annualCF);
+  cfEl.className = 'kv ' + (a.annualCF >= 0 ? 'k-pos' : 'k-neg');
+
+  var cocEl = document.getElementById('kpi-coc');
+  cocEl.textContent = pct(a.cocROI);
+  cocEl.className = 'kv ' + (a.cocROI >= 0 ? 'k-pos' : 'k-neg');
+
+  // 6.5% rule badge
+  var ruleEl = document.getElementById('pc-rule');
+  if (a.rulePass) {
+    ruleEl.innerHTML = '<span class="badge badge-pass">✓ 6.5% Rule — Gross Rev ' + $d(a.grossAnnualRev) + ' ≥ ' + $d(a.ruleTarget) + '</span>';
+  } else {
+    ruleEl.innerHTML = '<span class="badge badge-fail">✗ 6.5% Rule — Gross Rev ' + $d(a.grossAnnualRev) + ' < ' + $d(a.ruleTarget) + '</span>';
+  }
+}
+
+function renderAllTabs(a) {
+  renderOverview(a);
+  renderCashFlow(a);
+  renderTax(a);
+  renderFiveYear(a);
+}
+
+function renderOverview(a) {
+  var h = '<div class="mgrid">';
+  h += mc('Monthly CF', $d(a.monthlyCF), cls(a.monthlyCF));
+  h += mc('Annual CF', $d(a.annualCF), cls(a.annualCF));
+  h += mc('CoC ROI', pct(a.cocROI), cls(a.cocROI));
+  h += mc('Tax-Adj ROI', pct(a.taxAdjROI), cls(a.taxAdjROI));
+  h += mc('Y1 Tax Savings', $d(a.y1TaxSavings), 'pos');
+  h += mc('Y1 Depreciation', $d(a.y1Depr), 'neut');
+  h += mc('Total Cash In', $d(a.totalCashIn), '');
+  h += mc('5yr Total ROI', pct(a.totalROI), cls(a.totalROI));
+  h += '</div>';
+
+  // Investment breakdown
+  h += '<div class="card"><div class="card-title">Investment Breakdown</div>';
+  h += '<table class="tbl">';
+  if (a.inp.loanType !== 'cash') h += tr('Down Payment (' + (a.inp.downPct*100) + '%)', $d(a.downPay));
+  else h += tr('Purchase Price', $d(a.prop.price));
+  h += tr('Closing Costs (3%)', $d(a.closingCosts));
+  h += tr('Furnishing', $d(a.inp.furnishing));
+  h += '<tr class="row-total"><td>Total Cash Required</td><td>' + $d(a.totalCashIn) + '</td></tr>';
+  h += '</table></div>';
+
+  // Market info
+  if (a.prop.strMarket || a.prop.marketNotes) {
+    h += '<div class="card"><div class="card-title">Market Notes</div>';
+    if (a.prop.strMarket) h += '<p style="font-size:13px;color:var(--tx2);margin-bottom:6px"><strong style="color:var(--tx)">Market:</strong> ' + esc(a.prop.strMarket) + '</p>';
+    if (a.prop.marketNotes) h += '<p style="font-size:13px;color:var(--tx2);line-height:1.5">' + esc(a.prop.marketNotes) + '</p>';
+    h += '</div>';
+  }
+
+  document.getElementById('it-ov').innerHTML = h;
+}
+
+function renderCashFlow(a) {
+  var h = '<div class="card"><div class="card-title">Monthly Revenue</div>';
+  h += '<table class="tbl">';
+  h += tr('Avg Nightly Rate (Weighted)', '$' + Math.round(a.avgNightlyRate));
+  h += tr('Occupancy', (a.inp.occupancy * 100).toFixed(0) + '% (' + Math.round(a.inp.occupancy * 30) + ' nights/mo)');
+  h += tr('Gross STR Revenue', $d(a.monthlyRev));
+  if (a.apiBenchmarkRev > 0) h += tr('API Benchmark', $d(a.apiBenchmarkRev) + ' <span style="font-weight:400;color:var(--tx3);font-family:var(--font)">(reference)</span>');
+  h += tr('Platform Fees', '-' + $d(a.platformFees));
+  h += '</table></div>';
+
+  // Seasonal breakdown
+  if (a.prop.seasonalRates) {
+    var sr = a.prop.seasonalRates;
+    h += '<div class="card"><div class="card-title">Seasonal Rate Breakdown</div>';
+    h += '<table class="tbl">';
+    h += '<tr><th>Season</th><th>Months</th><th>ADR</th><th>Occ</th></tr>';
+    if (sr.peak) h += '<tr><td style="color:var(--gn);font-weight:600">Peak</td><td>' + (sr.peak.months||[]).join(', ') + '</td><td style="font-family:var(--mono);font-weight:600">$' + sr.peak.rate + '</td><td>' + Math.round((sr.peak.occupancy||0)*100) + '%</td></tr>';
+    if (sr.shoulder) h += '<tr><td style="color:var(--yl);font-weight:600">Shoulder</td><td>' + (sr.shoulder.months||[]).join(', ') + '</td><td style="font-family:var(--mono);font-weight:600">$' + sr.shoulder.rate + '</td><td>' + Math.round((sr.shoulder.occupancy||0)*100) + '%</td></tr>';
+    if (sr.offSeason) h += '<tr><td style="color:var(--ac2);font-weight:600">Off-Season</td><td>' + (sr.offSeason.months||[]).join(', ') + '</td><td style="font-family:var(--mono);font-weight:600">$' + sr.offSeason.rate + '</td><td>' + Math.round((sr.offSeason.occupancy||0)*100) + '%</td></tr>';
+    if (a.prop.weightedADR) h += '<tr class="row-total"><td>Weighted Avg</td><td></td><td>$' + Math.round(a.prop.weightedADR) + '</td><td></td></tr>';
+    h += '</table>';
+    h += '<p style="font-size:11px;color:var(--tx3);margin-top:8px;line-height:1.4">AI estimates — override ADR with your AirDNA/Rabbu research using the Recalc input above.</p>';
+    h += '</div>';
+  }
+
+  h += '<div class="card"><div class="card-title">Monthly Expenses</div>';
+  h += '<table class="tbl">';
+  if (a.monthlyMortgage > 0) h += tr('Mortgage', $d(a.monthlyMortgage));
+  h += tr('Property Tax', $d(a.propTaxMo));
+  h += tr('Insurance', $d(a.insuranceMo));
+  if (a.hoaMo > 0) h += tr('HOA', $d(a.hoaMo));
+  if (a.lodgingTaxMo > 0) h += tr('Lodging Tax (' + (a.inp.lodgingTaxPct * 100).toFixed(0) + '%)', $d(a.lodgingTaxMo));
+  if (a.mgmtFee > 0) h += tr('Management', $d(a.mgmtFee));
+  h += tr('Utilities', $d(a.utilities));
+  h += tr('Supplies', $d(a.supplies));
+  h += tr('Maintenance (' + (a.inp.maintPct * 100).toFixed(1) + '%/yr)', $d(a.maintenanceMo));
+  h += tr('CapEx Reserve (' + (a.inp.capexPct * 100).toFixed(1) + '%/yr)', $d(a.capexMo));
+  h += '<tr class="row-total"><td>Total Expenses</td><td>' + $d(a.totalEx) + '</td></tr>';
+  h += '</table></div>';
+
+  h += '<div class="mgrid">';
+  h += mc('Monthly NOI', $d(a.monthlyNOI), cls(a.monthlyNOI));
+  h += mc('Monthly CF', $d(a.monthlyCF), cls(a.monthlyCF));
+  h += mc('Annual NOI', $d(a.annualNOI), cls(a.annualNOI));
+  h += mc('Annual CF', $d(a.annualCF), cls(a.annualCF));
+  h += '</div>';
+
+  document.getElementById('it-cf').innerHTML = h;
+}
+
+function renderTax(a) {
+  var h = '<div class="card"><div class="card-title">Depreciation — ' + (a.inp.costSeg ? 'Cost Segregation' : 'Straight-Line MACRS') + '</div>';
+  h += '<table class="tbl">';
+  h += tr('Building Value (80%)', $d(a.prop.price * 0.80));
+  h += tr('Land Value (20%)', $d(a.prop.price * 0.20));
+
+  if (a.inp.costSeg) {
+    var bv = a.prop.price * 0.80;
+    h += tr('5-yr Property (15%)', $d(bv * 0.15) + ' × ' + (a.inp.bonusPct*100) + '% bonus');
+    h += tr('7-yr Property (10%)', $d(bv * 0.10) + ' × ' + (a.inp.bonusPct*100) + '% bonus');
+    h += tr('15-yr Property (15%)', $d(bv * 0.15) + ' × ' + (a.inp.bonusPct*100) + '% bonus');
+    h += tr('27.5-yr Residential (60%)', $d(bv * 0.60) + ' / 27.5 yr');
+  } else {
+    h += tr('Annual Depreciation', $d(a.straightLineDepr) + ' / yr (27.5 yr)');
+  }
+  h += '<tr class="row-total"><td>Year 1 Depreciation</td><td>' + $d(a.y1Depr) + '</td></tr>';
+  h += '</table></div>';
+
+  h += '<div class="mgrid">';
+  h += mc('Y1 Paper Loss', $d(a.y1Depr), 'neut');
+  h += mc('Tax Rate', (a.inp.taxRate*100).toFixed(0) + '%', '');
+  h += mc('Y1 Tax Savings', $d(a.y1TaxSavings), 'pos');
+  h += mc('Tax-Adj ROI', pct(a.taxAdjROI), cls(a.taxAdjROI));
+  h += '</div>';
+
+  h += '<div class="card"><div class="card-title">STR Loophole — Active Investor</div>';
+  h += '<p style="font-size:13px;color:var(--tx2);line-height:1.6">';
+  h += 'As a materially-participating STR investor (avg guest stay &lt;7 days), rental losses are <strong style="color:var(--gn)">non-passive</strong>. ';
+  h += 'Paper losses from depreciation offset W-2 and other ordinary income with no passive activity limitation.';
+  h += '</p></div>';
+
+  document.getElementById('it-tx').innerHTML = h;
+}
+
+function renderFiveYear(a) {
+  var h = '<div class="yr-tbl"><table class="tbl"><thead><tr>';
+  h += '<th>Year</th><th>Revenue</th><th>NOI</th><th>CF</th><th>Tax Sav</th><th>Value</th>';
+  h += '</tr></thead><tbody>';
+  for (var i = 0; i < a.fiveYear.length; i++) {
+    var y = a.fiveYear[i];
+    h += '<tr>';
+    h += '<td style="color:var(--ac);font-weight:600">Y' + y.year + '</td>';
+    h += '<td>' + $d(y.revenue) + '</td>';
+    h += '<td>' + $d(y.noi) + '</td>';
+    h += '<td style="color:' + (y.cashFlow >= 0 ? 'var(--gn)' : 'var(--rd)') + '">' + $d(y.cashFlow) + '</td>';
+    h += '<td style="color:var(--gn)">' + $d(y.taxSavings) + '</td>';
+    h += '<td>' + $d(y.propValue) + '</td>';
+    h += '</tr>';
+  }
+  h += '</tbody></table></div>';
+
+  h += '<div class="card"><div class="card-title">Exit Analysis (Year 5)</div>';
+  h += '<table class="tbl">';
+  h += tr('Exit Value', $d(a.exitValue));
+  h += tr('Loan Balance', $d(a.fiveYear[4].loanBalance));
+  h += tr('Selling Costs (6%)', '-' + $d(a.exitValue * 0.06));
+  h += '<tr class="row-total"><td>Exit Equity</td><td>' + $d(a.exitEquity) + '</td></tr>';
+  h += '</table></div>';
+
+  h += '<div class="mgrid">';
+  h += mc('Cum. Cash Flow', $d(a.cumCF), cls(a.cumCF));
+  h += mc('Cum. Tax Savings', $d(a.cumTax), 'pos');
+  h += mc('Exit Equity', $d(a.exitEquity), cls(a.exitEquity));
+  h += mc('Total 5yr ROI', pct(a.totalROI), cls(a.totalROI));
+  h += '</div>';
+
+  document.getElementById('it-yr').innerHTML = h;
+}
+
+/* Helpers */
+function mc(label, value, colorCls) {
+  return '<div class="mcard"><div class="ml">' + label + '</div><div class="mv ' + (colorCls || '') + '">' + value + '</div></div>';
+}
+function tr(label, value) {
+  return '<tr><td>' + label + '</td><td>' + value + '</td></tr>';
+}
+function esc(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+/* ===== INNER TABS ===== */
+function showIT(id) {
+  var tabs = ['ov','cf','tx','yr'];
+  for (var i = 0; i < tabs.length; i++) {
+    var el = document.getElementById('it-' + tabs[i]);
+    if (tabs[i] === id) {
+      el.classList.remove('hidden');
+      el.style.display = '';
+    } else {
+      el.classList.add('hidden');
+      el.style.display = 'none';
+    }
+  }
+  // Update tab buttons
+  var btns = document.querySelectorAll('.itabs button');
+  for (var j = 0; j < btns.length; j++) {
+    btns[j].classList.remove('active');
+    if (j === tabs.indexOf(id)) btns[j].classList.add('active');
+  }
+}
+
+/* ===== OVERRIDE RECALC (Price + Nightly Rate) ===== */
+function recalcOverrides() {
+  if (!curA) return;
+
+  var priceRaw = document.getElementById('price-override').value.replace(/[^0-9.]/g, '');
+  var rateRaw = document.getElementById('rate-override').value.replace(/[^0-9.]/g, '');
+  var newPrice = priceRaw ? parseFloat(priceRaw) : null;
+  var newRate = rateRaw ? parseFloat(rateRaw) : null;
+
+  // Need at least one override
+  if (!newPrice && !newRate) {
+    showStatus('Enter a new price or nightly rate to recalculate');
+    return;
+  }
+  if (newPrice && newPrice < 10000) {
+    showStatus('Enter a valid price (e.g. 500000)');
+    return;
+  }
+  if (newRate && (newRate < 20 || newRate > 2000)) {
+    showStatus('Enter a valid nightly rate (e.g. 250)');
+    return;
+  }
+
+  // Deep clone prop and inputs
+  var prop = JSON.parse(JSON.stringify(curA.prop));
+  var inputs = JSON.parse(JSON.stringify(curA.inp));
+  if (newPrice) prop.price = newPrice;
+  if (newRate) prop.avgNightlyRate = newRate;
+
+  // Re-run analysis
+  var res = analyze(prop, inputs);
+  res.prop = prop;
+  res.inp = inputs;
+  curA = res;
+
+  // Hide then show res-content to force repaint
+  var rc = document.getElementById('res-content');
+  rc.classList.add('hidden');
+
+  // Render
+  renderPropCard(curA);
+  renderAllTabs(curA);
+  showIT('ov');
+
+  // Show content again
+  rc.classList.remove('hidden');
+  rc.style.display = '';
+
+  // Restore typed values in inputs after render
+  setTimeout(function() {
+    if (newPrice) document.getElementById('price-override').value = newPrice;
+    if (newRate) document.getElementById('rate-override').value = newRate;
+  }, 0);
+
+  // Flash button green
+  var btn = document.getElementById('btn-recalc');
+  btn.classList.add('btn-flash');
+  setTimeout(function() {
+    btn.classList.remove('btn-flash');
+  }, 400);
+
+  // Save updated analysis
+  saveToDB(curA);
+}
+
+/* ===== STATUS BAR ===== */
+function showStatus(msg) {
+  var el = document.getElementById('status');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 3000);
+}
+
+/* ===== API CALL ===== */
+function doAnalyze() {
+  var addr = document.getElementById('addr').value.trim();
+  if (!addr) {
+    showStatus('Please enter a property address');
+    return;
+  }
+
+  var btn = document.getElementById('btn-analyze');
+  btn.disabled = true;
+  btn.textContent = 'Analyzing…';
+
+  goTab('results');
+  document.getElementById('res-empty').classList.add('hidden');
+  document.getElementById('res-content').classList.add('hidden');
+  document.getElementById('res-loading').classList.remove('hidden');
+  document.getElementById('ldg-txt').textContent = 'Analyzing ' + addr + '…';
+
+  var prompt = 'You are a real estate data assistant specializing in short-term rental analysis. For this US property address, return ONLY valid JSON (no markdown, no explanation) with these fields:\n'
+    + '{\n'
+    + '  "address": "full address",\n'
+    + '  "price": estimated_current_value_number,\n'
+    + '  "beds": number,\n'
+    + '  "baths": number,\n'
+    + '  "sqft": number,\n'
+    + '  "propertyType": "Single Family|Condo|Townhouse|Multi-Family",\n'
+    + '  "propertyTax": annual_property_tax_number,\n'
+    + '  "hoa": monthly_hoa_number_or_0,\n'
+    + '  "insurance": annual_insurance_number,\n'
+    + '  "strGrossRevenue": estimated_monthly_str_gross_revenue,\n'
+    + '  "occupancyRate": decimal_like_0.65,\n'
+    + '  "avgNightlyRate": weighted_annual_average_nightly_rate,\n'
+    + '  "seasonalRates": {\n'
+    + '    "peak": { "rate": nightly_rate, "months": ["Jun","Jul","Aug"], "occupancy": 0.80 },\n'
+    + '    "shoulder": { "rate": nightly_rate, "months": ["Mar","Apr","May","Sep","Oct"], "occupancy": 0.60 },\n'
+    + '    "offSeason": { "rate": nightly_rate, "months": ["Nov","Dec","Jan","Feb"], "occupancy": 0.40 }\n'
+    + '  },\n'
+    + '  "strMarket": "market quality description",\n'
+    + '  "marketNotes": "brief notes about STR potential and seasonality"\n'
+    + '}\n\n'
+    + 'For seasonalRates: estimate realistic nightly rates and occupancy for each season based on this specific market. Peak = highest demand months, shoulder = moderate, offSeason = lowest. The avgNightlyRate should be the weighted average across all seasons.\n\n'
+    + 'Property: ' + addr;
+
+  fetch('/api/proxy', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      model: 'claude-opus-4-5',
+      max_tokens: 1500,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(r) {
+    return r.text().then(function(txt) {
+      if (!r.ok) throw new Error('Status ' + r.status + ': ' + txt);
+      try { return JSON.parse(txt); }
+      catch(e) { throw new Error('Bad JSON from proxy: ' + txt.slice(0, 200)); }
+    });
+  })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    // Extract JSON from response
+    var content = data.content && data.content[0] && data.content[0].text;
+    if (!content) throw new Error('Empty response from API');
+
+    var prop;
+    try {
+      // Try to parse directly
+      prop = JSON.parse(content);
+    } catch(e) {
+      // Try to extract JSON from markdown code block
+      var m = content.match(/\{[\s\S]*\}/);
+      if (m) {
+        prop = JSON.parse(m[0]);
+      } else {
+        throw new Error('Could not parse property data: ' + content.slice(0, 200));
+      }
+    }
+
+    // Compute weighted average ADR from seasonal data if available
+    if (prop.seasonalRates) {
+      var sr = prop.seasonalRates;
+      var totalNights = 0;
+      var totalRev = 0;
+      var seasons = ['peak', 'shoulder', 'offSeason'];
+      for (var si = 0; si < seasons.length; si++) {
+        var s = sr[seasons[si]];
+        if (s && s.rate && s.months && s.occupancy !== undefined) {
+          var sMonths = s.months.length;
+          var sDays = sMonths * 30;
+          var sNights = sDays * s.occupancy;
+          totalNights += sNights;
+          totalRev += sNights * s.rate;
+        }
+      }
+      if (totalNights > 0) {
+        prop.weightedADR = totalRev / totalNights;
+        prop.weightedAnnualRev = totalRev;
+        // Use weighted ADR as the avgNightlyRate if not overridden
+        if (!prop.avgNightlyRate || Math.abs(prop.avgNightlyRate - prop.weightedADR) > 50) {
+          prop.avgNightlyRate = Math.round(prop.weightedADR);
+        }
+      }
+    }
+
+    var inputs = getInputs();
+    var res = analyze(prop, inputs);
+    curA = res;
+
+    // Show results
+    document.getElementById('res-loading').classList.add('hidden');
+    document.getElementById('res-content').classList.remove('hidden');
+    document.getElementById('res-content').style.display = '';
+
+    renderPropCard(curA);
+    renderAllTabs(curA);
+    showIT('ov');
+
+    // Clear overrides
+    document.getElementById('price-override').value = '';
+    document.getElementById('rate-override').value = '';
+
+    // Save
+    saveToDB(curA);
+  })
+  .catch(function(err) {
+    document.getElementById('res-loading').classList.add('hidden');
+    document.getElementById('res-empty').classList.remove('hidden');
+    showStatus('Error: ' + err.message);
+    console.error(err);
+  })
+  .finally(function() {
+    btn.disabled = false;
+    btn.textContent = '🔍 Analyze Property';
+  });
+}
+
+/* ===== INDEXED DB ===== */
+function openDB(cb) {
+  if (db) return cb(db);
+  var req = indexedDB.open(DB_NAME, 1);
+  req.onupgradeneeded = function(e) {
+    var d = e.target.result;
+    if (!d.objectStoreNames.contains(STORE)) {
+      d.createObjectStore(STORE, { keyPath: 'ts' });
+    }
+  };
+  req.onsuccess = function(e) {
+    db = e.target.result;
+    cb(db);
+  };
+  req.onerror = function() {
+    console.error('IndexedDB error');
+  };
+}
+
+function saveToDB(a) {
+  openDB(function(d) {
+    var tx = d.transaction(STORE, 'readwrite');
+    var store = tx.objectStore(STORE);
+    var record = {
+      ts: a.ts,
+      address: a.prop.address,
+      prop: a.prop,
+      inp: a.inp,
+      monthlyCF: a.monthlyCF,
+      cocROI: a.cocROI,
+      y1TaxSavings: a.y1TaxSavings,
+      totalROI: a.totalROI
+    };
+    store.put(record);
+  });
+}
+
+function loadSaved() {
+  openDB(function(d) {
+    var tx = d.transaction(STORE, 'readonly');
+    var store = tx.objectStore(STORE);
+    var req = store.getAll();
+    req.onsuccess = function() {
+      var items = req.result || [];
+      items.sort(function(a, b) { return b.ts - a.ts; });
+      var list = document.getElementById('saved-list');
+      var empty = document.getElementById('saved-empty');
+
+      if (items.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      var h = '';
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i];
+        var dt = new Date(it.ts);
+        var dateStr = (dt.getMonth()+1) + '/' + dt.getDate() + '/' + dt.getFullYear() + ' ' +
+                      dt.getHours() + ':' + String(dt.getMinutes()).padStart(2,'0');
+        h += '<div class="scard" onclick="loadAnalysis(' + it.ts + ')">';
+        h += '<button type="button" class="del" onclick="event.stopPropagation();delAnalysis(' + it.ts + ')">🗑</button>';
+        h += '<div class="sa">' + esc(it.address || 'Unknown') + '</div>';
+        h += '<div class="sm">' + dateStr + '</div>';
+        h += '<div class="schips">';
+        h += '<span class="schip" style="background:var(--gn-soft);color:var(--gn)">CF ' + $d(it.monthlyCF) + '/mo</span>';
+        h += '<span class="schip" style="background:var(--ac-soft);color:var(--ac2)">CoC ' + pct(it.cocROI) + '</span>';
+        h += '<span class="schip" style="background:var(--yl-soft);color:var(--yl)">Tax ' + $d(it.y1TaxSavings) + '</span>';
+        h += '<span class="schip" style="background:var(--purple-soft);color:var(--purple)">5yr ' + pct(it.totalROI) + '</span>';
+        h += '</div></div>';
+      }
+      list.innerHTML = h;
+    };
+  });
+}
+
+function loadAnalysis(ts) {
+  openDB(function(d) {
+    var tx = d.transaction(STORE, 'readonly');
+    var store = tx.objectStore(STORE);
+    var req = store.get(ts);
+    req.onsuccess = function() {
+      var rec = req.result;
+      if (!rec) return;
+      var res = analyze(rec.prop, rec.inp);
+      curA = res;
+
+      document.getElementById('res-empty').classList.add('hidden');
+      document.getElementById('res-loading').classList.add('hidden');
+      document.getElementById('res-content').classList.remove('hidden');
+      document.getElementById('res-content').style.display = '';
+
+      renderPropCard(curA);
+      renderAllTabs(curA);
+      showIT('ov');
+      document.getElementById('price-override').value = '';
+      document.getElementById('rate-override').value = '';
+
+      goTab('results');
+    };
+  });
+}
+
+function delAnalysis(ts) {
+  openDB(function(d) {
+    var tx = d.transaction(STORE, 'readwrite');
+    var store = tx.objectStore(STORE);
+    store.delete(ts);
+    tx.oncomplete = function() { loadSaved(); };
+  });
+}
+
+/* ===== INIT ===== */
+openDB(function() {});
+</script>
+
+</body>
+</html>
