@@ -3,7 +3,7 @@
   "short_name": "STR",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafb",
-  "theme_color": "#f8fafb",
+  "background_color": "#f0f4f8",
+  "theme_color": "#f0f4f8",
   "description": "Short-Term Rental Investment Analyzer"
 }
