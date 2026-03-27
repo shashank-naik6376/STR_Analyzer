@@ -1,27 +1,26 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f8fafb">
+<meta name="theme-color" content="#f0f4f8">
 <link rel="manifest" href="/manifest.json">
 <title>STR Analyzer</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f8fafb;--bg2:#ffffff;--bg3:#f1f5f9;--bg4:#e2e8f0;
-  --tx:#1e293b;--tx2:#475569;--tx3:#94a3b8;
-  --ac:#3b82f6;--ac2:#2563eb;--ac3:#1d4ed8;--ac-soft:rgba(59,130,246,.08);
-  --gn:#16a34a;--gn-soft:rgba(22,163,74,.08);
-  --rd:#dc2626;--rd-soft:rgba(220,38,38,.08);
-  --yl:#d97706;--yl-soft:rgba(217,119,6,.08);
-  --purple:#7c3aed;--purple-soft:rgba(124,58,237,.08);
-  --bdr:#e2e8f0;
-  --shadow:0 1px 3px rgba(0,0,0,.04),0 1px 2px rgba(0,0,0,.03);
-  --shadow-md:0 4px 6px rgba(0,0,0,.04),0 2px 4px rgba(0,0,0,.03);
+  --bg:#f0f4f8;--bg2:#ffffff;--bg3:#e8edf4;--bg4:#cbd5e1;
+  --tx:#0f172a;--tx2:#334155;--tx3:#64748b;
+  --ac:#2563eb;--ac2:#1d4ed8;--ac3:#1e40af;--ac-soft:rgba(37,99,235,.1);
+  --gn:#15803d;--gn-soft:rgba(21,128,61,.12);
+  --rd:#dc2626;--rd-soft:rgba(220,38,38,.1);
+  --yl:#b45309;--yl-soft:rgba(180,83,9,.12);
+  --purple:#7c3aed;--purple-soft:rgba(124,58,237,.1);
+  --bdr:#c7d2e0;
+  --shadow:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 8px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.05);
   --r:14px;--r2:10px;--r3:22px;
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
   --mono:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
@@ -42,168 +41,168 @@ body{display:flex;flex-direction:column;height:100vh;height:100dvh}
 
 /* Bottom nav */
 .bnav{
-display:flex;background:var(–bg2);border-top:1px solid var(–bdr);
-padding:6px 0 env(safe-area-inset-bottom,8px);flex-shrink:0;
-box-shadow:0 -1px 4px rgba(0,0,0,.03);
+  display:flex;background:var(--bg2);border-top:1px solid var(--bdr);
+  padding:6px 0 env(safe-area-inset-bottom,8px);flex-shrink:0;
+  box-shadow:0 -1px 4px rgba(0,0,0,.03);
 }
 .bnav button{
-flex:1;background:none;border:none;color:var(–tx3);
-display:flex;flex-direction:column;align-items:center;gap:2px;
-font-size:10px;font-family:var(–font);padding:6px 0;
--webkit-tap-highlight-color:transparent;cursor:pointer;
-transition:color .2s;
+  flex:1;background:none;border:none;color:var(--tx3);
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:10px;font-family:var(--font);padding:6px 0;
+  -webkit-tap-highlight-color:transparent;cursor:pointer;
+  transition:color .2s;
 }
-.bnav button.active{color:var(–ac)}
+.bnav button.active{color:var(--ac)}
 .bnav button .ico{font-size:20px;line-height:1}
 
 /* Cards */
 .card{
-background:var(–bg2);border:1px solid var(–bdr);border-radius:var(–r);
-padding:16px;margin-bottom:12px;box-shadow:var(–shadow);
+  background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);
+  padding:16px;margin-bottom:12px;box-shadow:var(--shadow);
 }
-.card-title{font-size:12px;font-weight:700;color:var(–tx3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
+.card-title{font-size:12px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
 
 /* Inputs */
 .inp-wrap{margin-bottom:14px}
-.inp-wrap label{display:block;font-size:12px;color:var(–tx2);margin-bottom:5px;font-weight:600}
+.inp-wrap label{display:block;font-size:12px;color:var(--tx2);margin-bottom:5px;font-weight:600}
 .inp{
-width:100%;background:var(–bg3);border:1px solid var(–bdr);border-radius:var(–r2);
-color:var(–tx);font-size:15px;font-family:var(–font);padding:10px 12px;
-outline:none;transition:border-color .2s,box-shadow .2s;
+  width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r2);
+  color:var(--tx);font-size:15px;font-family:var(--font);padding:10px 12px;
+  outline:none;transition:border-color .2s,box-shadow .2s;
 }
-.inp:focus{border-color:var(–ac);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
-.inp::placeholder{color:var(–tx3)}
+.inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.inp::placeholder{color:var(--tx3)}
 
 /* Buttons */
 .btn{
-display:inline-flex;align-items:center;justify-content:center;gap:6px;
-background:var(–ac);color:#fff;font-weight:600;font-size:14px;
-border:none;border-radius:var(–r2);padding:12px 20px;cursor:pointer;
-font-family:var(–font);width:100%;transition:all .2s;
--webkit-tap-highlight-color:transparent;box-shadow:0 1px 2px rgba(59,130,246,.2);
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--ac);color:#fff;font-weight:700;font-size:15px;
+  border:none;border-radius:var(--r2);padding:13px 20px;cursor:pointer;
+  font-family:var(--font);width:100%;transition:all .2s;
+  -webkit-tap-highlight-color:transparent;box-shadow:0 2px 4px rgba(37,99,235,.25);
 }
 .btn:active{transform:scale(.97)}
 .btn:disabled{opacity:.5;pointer-events:none}
 .btn-sm{padding:8px 14px;font-size:13px;width:auto}
-.btn-ghost{background:transparent;color:var(–ac);border:1px solid var(–ac);box-shadow:none}
+.btn-ghost{background:transparent;color:var(--ac);border:1px solid var(--ac);box-shadow:none}
 
 /* Segment control */
-.seg{display:flex;background:var(–bg3);border-radius:var(–r2);overflow:hidden;margin-bottom:14px;border:1px solid var(–bdr)}
+.seg{display:flex;background:var(--bg3);border-radius:var(--r2);overflow:hidden;margin-bottom:14px;border:1px solid var(--bdr)}
 .seg button{
-flex:1;background:none;border:none;color:var(–tx3);font-size:13px;
-font-family:var(–font);font-weight:500;padding:9px 6px;cursor:pointer;
-transition:all .2s;-webkit-tap-highlight-color:transparent;
+  flex:1;background:none;border:none;color:var(--tx3);font-size:13px;
+  font-family:var(--font);font-weight:500;padding:9px 6px;cursor:pointer;
+  transition:all .2s;-webkit-tap-highlight-color:transparent;
 }
-.seg button.active{background:var(–ac);color:#fff;font-weight:600}
+.seg button.active{background:var(--ac);color:#fff;font-weight:600}
 
 /* Slider */
 .slider-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.slider-row label{font-size:12px;color:var(–tx2);min-width:90px;font-weight:500}
-.slider-row input[type=range]{flex:1;accent-color:var(–ac);height:4px}
-.slider-row .sv{font-size:14px;color:var(–ac2);font-weight:700;min-width:44px;text-align:right;font-family:var(–mono)}
+.slider-row label{font-size:12px;color:var(--tx2);min-width:90px;font-weight:500}
+.slider-row input[type=range]{flex:1;accent-color:var(--ac);height:4px}
+.slider-row .sv{font-size:14px;color:var(--ac2);font-weight:700;min-width:44px;text-align:right;font-family:var(--mono)}
 
 /* Toggle */
 .tog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.tog-row span{font-size:13px;color:var(–tx2)}
+.tog-row span{font-size:13px;color:var(--tx2)}
 .tog{
-width:44px;height:26px;background:var(–bg4);border-radius:13px;
-position:relative;cursor:pointer;transition:background .2s;border:none;
--webkit-tap-highlight-color:transparent;
+  width:44px;height:26px;background:#b0bec5;border-radius:13px;
+  position:relative;cursor:pointer;transition:background .2s;border:1px solid #9aa8b5;
+  -webkit-tap-highlight-color:transparent;
 }
-.tog.on{background:var(–ac)}
+.tog.on{background:var(--ac);border-color:var(--ac3)}
 .tog::after{
-content:’’;position:absolute;top:3px;left:3px;width:20px;height:20px;
-background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15);
+  content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;
+  background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15);
 }
 .tog.on::after{transform:translateX(18px)}
 
 /* Badges */
 .badge{
-display:inline-flex;align-items:center;gap:4px;
-font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;
 }
-.badge-pass{background:var(–gn-soft);color:var(–gn)}
-.badge-fail{background:var(–rd-soft);color:var(–rd)}
+.badge-pass{background:var(--gn-soft);color:var(--gn)}
+.badge-fail{background:var(--rd-soft);color:var(--rd)}
 
 /* Metric grid */
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.mcard{background:var(–bg2);border:1px solid var(–bdr);border-radius:var(–r2);padding:14px;text-align:center;box-shadow:var(–shadow)}
-.mcard .ml{font-size:10px;color:var(–tx3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
-.mcard .mv{font-size:18px;font-weight:800;color:var(–tx);font-family:var(–mono)}
-.mcard .mv.pos{color:var(–gn)}
-.mcard .mv.neg{color:var(–rd)}
-.mcard .mv.neut{color:var(–yl)}
+.mcard{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r2);padding:14px;text-align:center;box-shadow:var(--shadow)}
+.mcard .ml{font-size:10px;color:var(--tx3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+.mcard .mv{font-size:19px;font-weight:800;color:var(--tx);font-family:var(--mono)}
+.mcard .mv.pos{color:var(--gn)}
+.mcard .mv.neg{color:var(--rd)}
+.mcard .mv.neut{color:var(--yl)}
 
 /* Table */
 .tbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
-.tbl th{text-align:left;color:var(–tx3);font-weight:600;padding:8px 6px;border-bottom:2px solid var(–bdr);font-size:11px;text-transform:uppercase;letter-spacing:.3px}
-.tbl td{padding:9px 6px;border-bottom:1px solid var(–bg3);color:var(–tx2)}
-.tbl td:last-child{text-align:right;font-family:var(–mono);color:var(–tx);font-weight:600}
+.tbl th{text-align:left;color:var(--tx3);font-weight:700;padding:8px 6px;border-bottom:2px solid var(--bdr);font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+.tbl td{padding:9px 6px;border-bottom:1px solid var(--bg3);color:var(--tx2)}
+.tbl td:last-child{text-align:right;font-family:var(--mono);color:var(--tx);font-weight:700}
 .tbl tr:last-child td{border-bottom:none}
-.tbl .row-total td{font-weight:700;color:var(–ac2);border-top:2px solid var(–bdr)}
+.tbl .row-total td{font-weight:800;color:var(--ac);border-top:2px solid var(--bdr);font-size:14px}
 
 /* Inner tabs (results sub-tabs) */
 .itabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .itabs button{
-background:var(–bg2);border:1px solid var(–bdr);border-radius:20px;
-color:var(–tx3);font-size:12px;font-weight:600;padding:7px 16px;
-white-space:nowrap;cursor:pointer;font-family:var(–font);
-transition:all .2s;-webkit-tap-highlight-color:transparent;
+  background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;
+  color:var(--tx2);font-size:13px;font-weight:600;padding:8px 16px;
+  white-space:nowrap;cursor:pointer;font-family:var(--font);
+  transition:all .2s;-webkit-tap-highlight-color:transparent;
 }
-.itabs button.active{background:var(–ac);color:#fff;border-color:var(–ac);box-shadow:0 1px 3px rgba(59,130,246,.2)}
+.itabs button.active{background:var(--ac);color:#fff;border-color:var(--ac);box-shadow:0 2px 4px rgba(37,99,235,.25)}
 
 .hidden{display:none!important}
 
 /* Saved list */
 .scard{
-background:var(–bg2);border:1px solid var(–bdr);border-radius:var(–r);
-padding:14px;margin-bottom:10px;cursor:pointer;
-transition:border-color .2s,box-shadow .2s;position:relative;box-shadow:var(–shadow);
+  background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);
+  padding:14px;margin-bottom:10px;cursor:pointer;
+  transition:border-color .2s,box-shadow .2s;position:relative;box-shadow:var(--shadow);
 }
-.scard:active{border-color:var(–ac);box-shadow:var(–shadow-md)}
-.scard .sa{font-size:15px;font-weight:700;color:var(–tx);margin-bottom:6px;padding-right:30px}
-.scard .sm{font-size:12px;color:var(–tx3);margin-bottom:8px}
+.scard:active{border-color:var(--ac);box-shadow:var(--shadow-md)}
+.scard .sa{font-size:15px;font-weight:700;color:var(--tx);margin-bottom:6px;padding-right:30px}
+.scard .sm{font-size:12px;color:var(--tx3);margin-bottom:8px}
 .scard .schips{display:flex;flex-wrap:wrap;gap:6px}
 .scard .schip{font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px}
 .scard .del{
-position:absolute;top:12px;right:12px;background:none;border:none;
-font-size:18px;color:var(–tx3);cursor:pointer;padding:4px;
--webkit-tap-highlight-color:transparent;
+  position:absolute;top:12px;right:12px;background:none;border:none;
+  font-size:18px;color:var(--tx3);cursor:pointer;padding:4px;
+  -webkit-tap-highlight-color:transparent;
 }
-.scard .del:hover{color:var(–rd)}
+.scard .del:hover{color:var(--rd)}
 
 /* Loading */
 .ldg{text-align:center;padding:40px 0}
 .ldg .spinner{
-width:32px;height:32px;border:3px solid var(–bg4);border-top-color:var(–ac);
-border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;
+  width:32px;height:32px;border:3px solid var(--bg4);border-top-color:var(--ac);
+  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
-.ldg p{color:var(–tx2);font-size:14px}
+.ldg p{color:var(--tx2);font-size:14px}
 
 /* Prop card header */
 .pc{margin-bottom:16px}
-.pc .pc-addr{font-size:17px;font-weight:700;color:var(–tx);margin-bottom:4px}
-.pc .pc-det{font-size:13px;color:var(–tx3);margin-bottom:10px}
+.pc .pc-addr{font-size:17px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.pc .pc-det{font-size:13px;color:var(--tx3);margin-bottom:10px}
 .pc .pc-price-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
-.pc .pc-price{font-size:24px;font-weight:800;color:var(–ac2);font-family:var(–mono)}
-.pc .pc-mo{font-size:12px;color:var(–tx3)}
+.pc .pc-price{font-size:24px;font-weight:800;color:var(--ac2);font-family:var(--mono)}
+.pc .pc-mo{font-size:12px;color:var(--tx3)}
 
 /* KPI hero strip */
 .kpi-strip{
-display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
-margin:14px 0;padding:14px 0;border-top:1px solid var(–bdr);border-bottom:1px solid var(–bdr);
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+  margin:14px 0;padding:14px 0;border-top:2px solid var(--bdr);border-bottom:2px solid var(--bdr);
 }
 .kpi-strip .kpi{text-align:center}
-.kpi-strip .kpi .kv{font-size:20px;font-weight:800;font-family:var(–mono);line-height:1.2}
-.kpi-strip .kpi .kl{font-size:10px;font-weight:600;color:var(–tx3);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
-.kpi-strip .kpi .kv.k-pos{color:var(–gn)}
-.kpi-strip .kpi .kv.k-neg{color:var(–rd)}
-.kpi-strip .kpi .kv.k-ac{color:var(–ac2)}
-.kpi-strip .kpi .kv.k-yl{color:var(–yl)}
+.kpi-strip .kpi .kv{font-size:22px;font-weight:800;font-family:var(--mono);line-height:1.2;color:var(--tx)}
+.kpi-strip .kpi .kl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.kpi-strip .kpi .kv.k-pos{color:var(--gn)}
+.kpi-strip .kpi .kv.k-neg{color:var(--rd)}
+.kpi-strip .kpi .kv.k-ac{color:var(--ac)}
+.kpi-strip .kpi .kv.k-yl{color:var(--yl)}
 
 /* Flash green on recalc */
-.btn-flash{background:var(–gn)!important;transition:background .1s}
+.btn-flash{background:var(--gn)!important;transition:background .1s}
 
 /* 5yr table */
 .yr-tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:12px}
@@ -211,50 +210,45 @@ margin:14px 0;padding:14px 0;border-top:1px solid var(–bdr);border-bottom:1px 
 
 /* Status bar */
 .status{
-position:fixed;top:0;left:0;right:0;
-background:var(–rd);color:#fff;font-size:13px;font-weight:600;
-text-align:center;padding:8px 16px;z-index:100;
-transform:translateY(-100%);transition:transform .3s;
-box-shadow:0 2px 8px rgba(220,38,38,.2);
+  position:fixed;top:0;left:0;right:0;
+  background:var(--rd);color:#fff;font-size:13px;font-weight:600;
+  text-align:center;padding:8px 16px;z-index:100;
+  transform:translateY(-100%);transition:transform .3s;
+  box-shadow:0 2px 8px rgba(220,38,38,.2);
 }
 .status.show{transform:translateY(0)}
 
 /* Empty state */
-.empty{text-align:center;padding:60px 20px;color:var(–tx3)}
+.empty{text-align:center;padding:60px 20px;color:var(--tx3)}
 .empty .ei{font-size:48px;margin-bottom:12px}
 .empty p{font-size:14px;line-height:1.5}
 
 /* Header */
 .hdr{
-padding:12px 16px env(safe-area-inset-top,0);
-background:var(–bg2);border-bottom:1px solid var(–bdr);flex-shrink:0;
-display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.03);
+  padding:12px 16px env(safe-area-inset-top,0);
+  background:var(--bg2);border-bottom:1px solid var(--bdr);flex-shrink:0;
+  display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.03);
 }
-.hdr .logo{font-size:18px;font-weight:800;color:var(–ac2);letter-spacing:-.5px}
-.hdr .logo span{color:var(–tx)}
-.hdr .sub{font-size:11px;color:var(–tx3);margin-left:auto}
+.hdr .logo{font-size:18px;font-weight:800;color:var(--ac2);letter-spacing:-.5px}
+.hdr .logo span{color:var(--tx)}
+.hdr .sub{font-size:11px;color:var(--tx3);margin-left:auto}
 </style>
-
 </head>
 <body>
 
 <!-- Status bar for errors -->
-
 <div class="status" id="status"></div>
 
 <!-- Header -->
-
 <div class="hdr">
   <div class="logo">STR<span>Analyzer</span></div>
   <div class="sub">Investment Analysis</div>
 </div>
 
 <!-- Main scrollable area -->
-
 <div class="main">
 
   <!-- TAB 1: SEARCH -->
-
   <div class="page active" id="pg-search">
     <div class="card">
       <div class="card-title">Property Lookup</div>
@@ -267,160 +261,156 @@ display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.03);
       </button>
     </div>
 
-```
-<!-- Financing -->
-<div class="card">
-  <div class="card-title">Financing</div>
-  <div class="seg" id="seg-loan">
-    <button type="button" class="active" onclick="setLoan('conv',this)">Conventional</button>
-    <button type="button" onclick="setLoan('dscr',this)">DSCR</button>
-    <button type="button" onclick="setLoan('cash',this)">Cash</button>
-  </div>
-  <div id="loan-fields">
-    <div class="slider-row">
-      <label>Down Payment</label>
-      <input type="range" id="sl-dp" min="10" max="50" value="20" oninput="updSlider(this,'sv-dp','%')">
-      <span class="sv" id="sv-dp">20%</span>
+    <!-- Financing -->
+    <div class="card">
+      <div class="card-title">Financing</div>
+      <div class="seg" id="seg-loan">
+        <button type="button" class="active" onclick="setLoan('conv',this)">Conventional</button>
+        <button type="button" onclick="setLoan('dscr',this)">DSCR</button>
+        <button type="button" onclick="setLoan('cash',this)">Cash</button>
+      </div>
+      <div id="loan-fields">
+        <div class="slider-row">
+          <label>Down Payment</label>
+          <input type="range" id="sl-dp" min="10" max="50" value="20" oninput="updSlider(this,'sv-dp','%')">
+          <span class="sv" id="sv-dp">20%</span>
+        </div>
+        <div class="slider-row">
+          <label>Interest Rate</label>
+          <input type="range" id="sl-rate" min="4" max="10" value="7.0" step="0.125" oninput="updSlider(this,'sv-rate','%')">
+          <span class="sv" id="sv-rate">7.0%</span>
+        </div>
+        <div class="slider-row">
+          <label>Loan Term</label>
+          <input type="range" id="sl-term" min="15" max="30" value="30" step="5" oninput="updSlider(this,'sv-term',' yr')">
+          <span class="sv" id="sv-term">30 yr</span>
+        </div>
+      </div>
     </div>
-    <div class="slider-row">
-      <label>Interest Rate</label>
-      <input type="range" id="sl-rate" min="4" max="10" value="7.0" step="0.125" oninput="updSlider(this,'sv-rate','%')">
-      <span class="sv" id="sv-rate">7.0%</span>
+
+    <!-- STR Operations -->
+    <div class="card">
+      <div class="card-title">STR Operations</div>
+      <div class="slider-row">
+        <label>Occupancy</label>
+        <input type="range" id="sl-occ" min="30" max="90" value="65" oninput="updSlider(this,'sv-occ','%')">
+        <span class="sv" id="sv-occ">65%</span>
+      </div>
+      <div class="slider-row">
+        <label>Cleaning Fee</label>
+        <input type="range" id="sl-clean" min="50" max="400" value="150" step="10" oninput="updSlider(this,'sv-clean','','$')">
+        <span class="sv" id="sv-clean">$150</span>
+      </div>
+      <div class="slider-row">
+        <label>Cleans/Month</label>
+        <input type="range" id="sl-cleans" min="2" max="20" value="8" oninput="updSlider(this,'sv-cleans','')">
+        <span class="sv" id="sv-cleans">8</span>
+      </div>
+      <div class="slider-row">
+        <label>Utilities</label>
+        <input type="range" id="sl-util" min="100" max="600" value="250" step="10" oninput="updSlider(this,'sv-util','','$')">
+        <span class="sv" id="sv-util">$250</span>
+      </div>
+      <div class="slider-row">
+        <label>Supplies</label>
+        <input type="range" id="sl-sup" min="50" max="400" value="150" step="10" oninput="updSlider(this,'sv-sup','','$')">
+        <span class="sv" id="sv-sup">$150</span>
+      </div>
+      <div class="slider-row">
+        <label>Furnishing</label>
+        <input type="range" id="sl-furn" min="5000" max="60000" value="25000" step="1000" oninput="updSlider(this,'sv-furn','','$')">
+        <span class="sv" id="sv-furn">$25000</span>
+      </div>
+      <div class="tog-row">
+        <span>Self-Managed</span>
+        <button type="button" class="tog on" id="tog-self" onclick="toggleTog(this)"></button>
+      </div>
+      <div class="slider-row" id="mgmt-row" style="display:none">
+        <label>Mgmt Fee</label>
+        <input type="range" id="sl-mgmt" min="10" max="35" value="20" oninput="updSlider(this,'sv-mgmt','%')">
+        <span class="sv" id="sv-mgmt">20%</span>
+      </div>
     </div>
-    <div class="slider-row">
-      <label>Loan Term</label>
-      <input type="range" id="sl-term" min="15" max="30" value="30" step="5" oninput="updSlider(this,'sv-term',' yr')">
-      <span class="sv" id="sv-term">30 yr</span>
+
+    <!-- Annual Operating Costs -->
+    <div class="card">
+      <div class="card-title">Annual Operating Costs</div>
+      <div class="inp-wrap">
+        <label>Property Tax ($/yr)</label>
+        <input class="inp" type="text" id="inp-proptax" placeholder="Auto from API" inputmode="numeric">
+      </div>
+      <div class="inp-wrap">
+        <label>HOA ($/mo)</label>
+        <input class="inp" type="text" id="inp-hoa" placeholder="0" inputmode="numeric">
+      </div>
+      <div class="inp-wrap">
+        <label>Lodging / Occupancy Tax (%)</label>
+        <input class="inp" type="text" id="inp-lodgtax" placeholder="0" inputmode="numeric" value="0">
+      </div>
+      <div class="inp-wrap">
+        <label>Insurance ($/yr)</label>
+        <input class="inp" type="text" id="inp-insurance" placeholder="Auto from API" inputmode="numeric">
+      </div>
+      <div class="slider-row">
+        <label>Maintenance</label>
+        <input type="range" id="sl-maint" min="0.5" max="3" value="1" step="0.25" oninput="updSlider(this,'sv-maint','%')">
+        <span class="sv" id="sv-maint">1%</span>
+      </div>
+      <div class="slider-row">
+        <label>CapEx Reserve</label>
+        <input type="range" id="sl-capex" min="0" max="2" value="0.5" step="0.25" oninput="updSlider(this,'sv-capex','%')">
+        <span class="sv" id="sv-capex">0.5%</span>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- STR Operations -->
-<div class="card">
-  <div class="card-title">STR Operations</div>
-  <div class="slider-row">
-    <label>Occupancy</label>
-    <input type="range" id="sl-occ" min="30" max="90" value="65" oninput="updSlider(this,'sv-occ','%')">
-    <span class="sv" id="sv-occ">65%</span>
-  </div>
-  <div class="slider-row">
-    <label>Cleaning Fee</label>
-    <input type="range" id="sl-clean" min="50" max="400" value="150" step="10" oninput="updSlider(this,'sv-clean','','$')">
-    <span class="sv" id="sv-clean">$150</span>
-  </div>
-  <div class="slider-row">
-    <label>Cleans/Month</label>
-    <input type="range" id="sl-cleans" min="2" max="20" value="8" oninput="updSlider(this,'sv-cleans','')">
-    <span class="sv" id="sv-cleans">8</span>
-  </div>
-  <div class="slider-row">
-    <label>Utilities</label>
-    <input type="range" id="sl-util" min="100" max="600" value="250" step="10" oninput="updSlider(this,'sv-util','','$')">
-    <span class="sv" id="sv-util">$250</span>
-  </div>
-  <div class="slider-row">
-    <label>Supplies</label>
-    <input type="range" id="sl-sup" min="50" max="400" value="150" step="10" oninput="updSlider(this,'sv-sup','','$')">
-    <span class="sv" id="sv-sup">$150</span>
-  </div>
-  <div class="slider-row">
-    <label>Furnishing</label>
-    <input type="range" id="sl-furn" min="5000" max="60000" value="25000" step="1000" oninput="updSlider(this,'sv-furn','','$')">
-    <span class="sv" id="sv-furn">$25000</span>
-  </div>
-  <div class="tog-row">
-    <span>Self-Managed</span>
-    <button type="button" class="tog on" id="tog-self" onclick="toggleTog(this)"></button>
-  </div>
-  <div class="slider-row" id="mgmt-row" style="display:none">
-    <label>Mgmt Fee</label>
-    <input type="range" id="sl-mgmt" min="10" max="35" value="20" oninput="updSlider(this,'sv-mgmt','%')">
-    <span class="sv" id="sv-mgmt">20%</span>
-  </div>
-</div>
-
-<!-- Annual Operating Costs -->
-<div class="card">
-  <div class="card-title">Annual Operating Costs</div>
-  <div class="inp-wrap">
-    <label>Property Tax ($/yr)</label>
-    <input class="inp" type="text" id="inp-proptax" placeholder="Auto from API" inputmode="numeric">
-  </div>
-  <div class="inp-wrap">
-    <label>HOA ($/mo)</label>
-    <input class="inp" type="text" id="inp-hoa" placeholder="0" inputmode="numeric">
-  </div>
-  <div class="inp-wrap">
-    <label>Lodging / Occupancy Tax (%)</label>
-    <input class="inp" type="text" id="inp-lodgtax" placeholder="0" inputmode="numeric" value="0">
-  </div>
-  <div class="inp-wrap">
-    <label>Insurance ($/yr)</label>
-    <input class="inp" type="text" id="inp-insurance" placeholder="Auto from API" inputmode="numeric">
-  </div>
-  <div class="slider-row">
-    <label>Maintenance</label>
-    <input type="range" id="sl-maint" min="0.5" max="3" value="1" step="0.25" oninput="updSlider(this,'sv-maint','%')">
-    <span class="sv" id="sv-maint">1%</span>
-  </div>
-  <div class="slider-row">
-    <label>CapEx Reserve</label>
-    <input type="range" id="sl-capex" min="0" max="2" value="0.5" step="0.25" oninput="updSlider(this,'sv-capex','%')">
-    <span class="sv" id="sv-capex">0.5%</span>
-  </div>
-</div>
-
-<!-- Tax & Depreciation -->
-<div class="card">
-  <div class="card-title">Tax & Depreciation</div>
-  <div class="slider-row">
-    <label>Tax Rate</label>
-    <input type="range" id="sl-tax" min="15" max="50" value="35" oninput="updSlider(this,'sv-tax','%')">
-    <span class="sv" id="sv-tax">35%</span>
-  </div>
-  <div class="tog-row">
-    <span>Cost Segregation</span>
-    <button type="button" class="tog" id="tog-costseg" onclick="toggleTog(this)"></button>
-  </div>
-  <div id="costseg-fields" style="display:none">
-    <div class="slider-row">
-      <label>Bonus Depr %</label>
-      <input type="range" id="sl-bonus" min="0" max="100" value="60" step="5" oninput="updSlider(this,'sv-bonus','%')">
-      <span class="sv" id="sv-bonus">60%</span>
+    <!-- Tax & Depreciation -->
+    <div class="card">
+      <div class="card-title">Tax & Depreciation</div>
+      <div class="slider-row">
+        <label>Tax Rate</label>
+        <input type="range" id="sl-tax" min="15" max="50" value="35" oninput="updSlider(this,'sv-tax','%')">
+        <span class="sv" id="sv-tax">35%</span>
+      </div>
+      <div class="tog-row">
+        <span>Cost Segregation</span>
+        <button type="button" class="tog" id="tog-costseg" onclick="toggleTog(this)"></button>
+      </div>
+      <div id="costseg-fields" style="display:none">
+        <div class="slider-row">
+          <label>Bonus Depr %</label>
+          <input type="range" id="sl-bonus" min="0" max="100" value="60" step="5" oninput="updSlider(this,'sv-bonus','%')">
+          <span class="sv" id="sv-bonus">60%</span>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- 5-Year Assumptions -->
-<div class="card">
-  <div class="card-title">5-Year Assumptions</div>
-  <div class="slider-row">
-    <label>Rev Growth</label>
-    <input type="range" id="sl-revg" min="0" max="10" value="3" oninput="updSlider(this,'sv-revg','%')">
-    <span class="sv" id="sv-revg">3%</span>
-  </div>
-  <div class="slider-row">
-    <label>Exp Growth</label>
-    <input type="range" id="sl-expg" min="0" max="8" value="2" oninput="updSlider(this,'sv-expg','%')">
-    <span class="sv" id="sv-expg">2%</span>
-  </div>
-  <div class="slider-row">
-    <label>Appreciation</label>
-    <input type="range" id="sl-appr" min="0" max="8" value="3" oninput="updSlider(this,'sv-appr','%')">
-    <span class="sv" id="sv-appr">3%</span>
-  </div>
-  <div class="slider-row">
-    <label>Exit Cap Rate</label>
-    <input type="range" id="sl-cap" min="4" max="10" value="6" step="0.25" oninput="updSlider(this,'sv-cap','%')">
-    <span class="sv" id="sv-cap">6%</span>
-  </div>
-</div>
-```
-
+    <!-- 5-Year Assumptions -->
+    <div class="card">
+      <div class="card-title">5-Year Assumptions</div>
+      <div class="slider-row">
+        <label>Rev Growth</label>
+        <input type="range" id="sl-revg" min="0" max="10" value="3" oninput="updSlider(this,'sv-revg','%')">
+        <span class="sv" id="sv-revg">3%</span>
+      </div>
+      <div class="slider-row">
+        <label>Exp Growth</label>
+        <input type="range" id="sl-expg" min="0" max="8" value="2" oninput="updSlider(this,'sv-expg','%')">
+        <span class="sv" id="sv-expg">2%</span>
+      </div>
+      <div class="slider-row">
+        <label>Appreciation</label>
+        <input type="range" id="sl-appr" min="0" max="8" value="3" oninput="updSlider(this,'sv-appr','%')">
+        <span class="sv" id="sv-appr">3%</span>
+      </div>
+      <div class="slider-row">
+        <label>Exit Cap Rate</label>
+        <input type="range" id="sl-cap" min="4" max="10" value="6" step="0.25" oninput="updSlider(this,'sv-cap','%')">
+        <span class="sv" id="sv-cap">6%</span>
+      </div>
+    </div>
   </div>
 
   <!-- TAB 2: RESULTS -->
-
   <div class="page" id="pg-results">
     <div id="res-empty" class="empty">
       <div class="ei">📊</div>
@@ -441,53 +431,49 @@ display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.03);
         </div>
         <div id="pc-rule"></div>
 
-```
-    <!-- KPI Hero Strip -->
-    <div class="kpi-strip">
-      <div class="kpi"><div class="kv k-ac" id="kpi-rev">—</div><div class="kl">Projected Rev</div></div>
-      <div class="kpi"><div class="kv k-yl" id="kpi-adr">—</div><div class="kl">ADR</div></div>
-      <div class="kpi"><div class="kv" id="kpi-occ" style="color:var(--tx)">—</div><div class="kl">Occupancy</div></div>
+        <!-- KPI Hero Strip -->
+        <div class="kpi-strip">
+          <div class="kpi"><div class="kv k-ac" id="kpi-rev">—</div><div class="kl">Projected Rev</div></div>
+          <div class="kpi"><div class="kv k-yl" id="kpi-adr">—</div><div class="kl">ADR</div></div>
+          <div class="kpi"><div class="kv" id="kpi-occ" style="color:var(--tx)">—</div><div class="kl">Occupancy</div></div>
+        </div>
+        <div class="kpi-strip" style="border-top:none;padding-top:0;margin-top:0">
+          <div class="kpi"><div class="kv" id="kpi-noi">—</div><div class="kl">Annual NOI</div></div>
+          <div class="kpi"><div class="kv" id="kpi-cf">—</div><div class="kl">Annual CF</div></div>
+          <div class="kpi"><div class="kv" id="kpi-coc">—</div><div class="kl">CoC ROI</div></div>
+        </div>
+
+        <!-- Override row -->
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input class="inp" type="text" id="price-override" placeholder="New price" inputmode="numeric" style="width:110px;flex-shrink:0;font-size:14px;padding:8px 10px">
+          <input class="inp" type="text" id="rate-override" placeholder="New $/night" inputmode="numeric" style="width:110px;flex-shrink:0;font-size:14px;padding:8px 10px">
+          <button type="button" class="btn btn-sm" id="btn-recalc" onclick="recalcOverrides()">↻ Recalc</button>
+        </div>
+      </div>
+
+      <!-- Inner tabs -->
+      <div class="itabs">
+        <button type="button" class="active" onclick="showIT('ov')">Overview</button>
+        <button type="button" onclick="showIT('cf')">Cash Flow</button>
+        <button type="button" onclick="showIT('tx')">Tax</button>
+        <button type="button" onclick="showIT('yr')">5-Year</button>
+      </div>
+
+      <!-- Inner tab: Overview -->
+      <div id="it-ov"></div>
+
+      <!-- Inner tab: Cash Flow -->
+      <div id="it-cf" class="hidden" style="display:none"></div>
+
+      <!-- Inner tab: Tax -->
+      <div id="it-tx" class="hidden" style="display:none"></div>
+
+      <!-- Inner tab: 5-Year -->
+      <div id="it-yr" class="hidden" style="display:none"></div>
     </div>
-    <div class="kpi-strip" style="border-top:none;padding-top:0;margin-top:0">
-      <div class="kpi"><div class="kv" id="kpi-noi">—</div><div class="kl">Annual NOI</div></div>
-      <div class="kpi"><div class="kv" id="kpi-cf">—</div><div class="kl">Annual CF</div></div>
-      <div class="kpi"><div class="kv" id="kpi-coc">—</div><div class="kl">CoC ROI</div></div>
-    </div>
-
-    <!-- Override row -->
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <input class="inp" type="text" id="price-override" placeholder="New price" inputmode="numeric" style="width:110px;flex-shrink:0;font-size:14px;padding:8px 10px">
-      <input class="inp" type="text" id="rate-override" placeholder="New $/night" inputmode="numeric" style="width:110px;flex-shrink:0;font-size:14px;padding:8px 10px">
-      <button type="button" class="btn btn-sm" id="btn-recalc" onclick="recalcOverrides()">↻ Recalc</button>
-    </div>
-  </div>
-
-  <!-- Inner tabs -->
-  <div class="itabs">
-    <button type="button" class="active" onclick="showIT('ov')">Overview</button>
-    <button type="button" onclick="showIT('cf')">Cash Flow</button>
-    <button type="button" onclick="showIT('tx')">Tax</button>
-    <button type="button" onclick="showIT('yr')">5-Year</button>
-  </div>
-
-  <!-- Inner tab: Overview -->
-  <div id="it-ov"></div>
-
-  <!-- Inner tab: Cash Flow -->
-  <div id="it-cf" class="hidden" style="display:none"></div>
-
-  <!-- Inner tab: Tax -->
-  <div id="it-tx" class="hidden" style="display:none"></div>
-
-  <!-- Inner tab: 5-Year -->
-  <div id="it-yr" class="hidden" style="display:none"></div>
-</div>
-```
-
   </div>
 
   <!-- TAB 3: SAVED -->
-
   <div class="page" id="pg-saved">
     <div id="saved-list"></div>
     <div id="saved-empty" class="empty">
@@ -497,7 +483,6 @@ display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.03);
   </div>
 
   <!-- TAB 4: SETTINGS -->
-
   <div class="page" id="pg-settings">
     <div class="card">
       <div class="card-title">API Configuration</div>
@@ -525,7 +510,6 @@ display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.03);
 </div>
 
 <!-- Bottom nav -->
-
 <nav class="bnav">
   <button type="button" id="nb-search" class="active" onclick="goTab('search')">
     <span class="ico">🔍</span><span>Search</span>
@@ -1417,6 +1401,5 @@ function delAnalysis(ts) {
 /* ===== INIT ===== */
 openDB(function() {});
 </script>
-
 </body>
 </html>
